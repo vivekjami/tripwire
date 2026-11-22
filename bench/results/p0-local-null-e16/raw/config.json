@@ -1,0 +1,40 @@
+{
+  "RunID": "p0-local-null-e16",
+  "OutDir": "~/tripwire/bench/results/p0-local-null-e16",
+  "Target": "http://127.0.0.1:9302",
+  "Mode": "http",
+  "H2C": false,
+  "Rate": 200,
+  "Duration": 10000000000,
+  "Warmup": 3000000000,
+  "Arrivals": null,
+  "Seed": 1,
+  "SpinMargin": 1500000,
+  "MaxInflight": 200000,
+  "RequestTimeout": 60000000000,
+  "DrainTimeout": 30000000000,
+  "Surface": "chat",
+  "StreamFrac": 1,
+  "Events": 16,
+  "Gap": "const:20ms",
+  "Chunk": "token",
+  "Inject": [
+    {
+      "class": "PCI.PAN",
+      "count": 1
+    }
+  ],
+  "InjectFrac": 0.2,
+  "Fault": null,
+  "FaultFrac": 0,
+  "MCPVersion": "2025-11-25",
+  "MCPTool": "get_customer",
+  "MCPMismatchFrac": 0,
+  "IdleConns": 0,
+  "GTLog": "~/tripwire/.bench-quick/p0-local-work/gt.jsonl",
+  "EmitLog": "~/tripwire/.bench-quick/p0-local-work/emit.csv",
+  "EmitSample": 0.1,
+  "CheckSample": 0.1,
+  "SUTMetrics": "http://127.0.0.1:9303/metrics",
+  "MockStats": "http://127.0.0.1:9300/_tw/stats"
+}
