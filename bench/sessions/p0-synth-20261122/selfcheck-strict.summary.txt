@@ -1,0 +1,7 @@
+--- PASS: TestSelfCheckCoordinatedOmission (6.03s)
+--- FAIL: TestSelfCheckGeneratorHeadroom (6.58s)
+--- FAIL: TestSelfCheckClockJoin (13.75s)
+--- PASS: TestSelfCheckMockEmissionJitter (5.84s)
+FAIL
+FAIL	github.com/vivekjami/tripwire/internal/load	32.206s
+FAIL

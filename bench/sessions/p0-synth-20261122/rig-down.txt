@@ -1,0 +1,1 @@
+local rig down: verified no tripwire processes, no listeners on 9300 9302 9303 9304 9305 9306 9307 9308 9309, no state directory

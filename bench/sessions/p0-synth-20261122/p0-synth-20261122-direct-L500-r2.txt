@@ -1,0 +1,12 @@
+run p0-synth-20261122-direct-L500-r2  mode=http surface=chat target=http://127.0.0.1:9300
+  offered 500/s -> achieved 502/s over 15.0s  (completed 7523 of 7523 offered, abandoned 0)
+  events 870546 (58041/s)   generator CPU 41%
+  request_total          n=7523      p50=565.76ms  p99=625.66ms  p99.9=642.05ms  max=667.13ms
+  time_to_headers        n=7523      p50=498µs     p99=1.52ms    p99.9=3.38ms    max=8.34ms
+  time_to_first_event    n=7523      p50=500µs     p99=1.52ms    p99.9=3.39ms    max=8.34ms
+  event_delay            n=44599     p50=64µs      p99=465µs     p99.9=1.39ms    max=5.36ms
+  dispatch_lag (gen)     n=7523      p50=86µs      p99=746µs     p99.9=1.84ms    max=3.20ms
+  ground truth: checked=383 with_injection=85 spans=85 LEAKED=85 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=541µs p99=1.46ms max=6.79ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-direct-L500-r2
+RUN INVALID: dispatch lag p99 746 µs > 200 µs (generator jitter)

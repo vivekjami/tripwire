@@ -1,0 +1,19 @@
+=== RUN   TestSelfCheckCoordinatedOmission
+    selfcheck_test.go:80: open loop:   p50=329µs p99=477695µs p99.9=502271µs max=507391µs (n=2990)
+    selfcheck_test.go:105: closed loop: p50=116µs p99=246µs p99.9=546µs max=501503µs (n=20647)
+--- PASS: TestSelfCheckCoordinatedOmission (6.03s)
+=== RUN   TestSelfCheckGeneratorHeadroom
+    selfcheck_test.go:208: rate=10000 achieved=10026 genCPU=55% lag p50=105µs p99=3239µs p99.9=5047µs errors=map[]
+    selfcheck_test.go:217: dispatch lag p99 3239µs ≥ 200µs
+--- FAIL: TestSelfCheckGeneratorHeadroom (6.58s)
+=== RUN   TestSelfCheckClockJoin
+    selfcheck_test.go:301: injected=2000µs recovered=2711µs (base p50=154µs, delayed p50=2865µs; negative samples base=0 test=0)
+    selfcheck_test.go:307: recovered delay off by 711µs (> ±50µs)
+    selfcheck_test.go:309: recovered delay off by 711µs: the join is broken, not merely noisy
+--- FAIL: TestSelfCheckClockJoin (13.75s)
+=== RUN   TestSelfCheckMockEmissionJitter
+    selfcheck_test.go:330: mock emit jitter at ~200 concurrent streams: p50=588µs p99=1485µs max=5919µs (n=33124)
+--- PASS: TestSelfCheckMockEmissionJitter (5.84s)
+FAIL
+FAIL	github.com/vivekjami/tripwire/internal/load	32.206s
+FAIL

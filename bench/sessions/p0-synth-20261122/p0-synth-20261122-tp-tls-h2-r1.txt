@@ -1,0 +1,12 @@
+run p0-synth-20261122-tp-tls-h2-r1  mode=http surface=chat target=https://localhost:9304
+  offered 500/s -> achieved 502/s over 15.0s  (completed 7523 of 7523 offered, abandoned 0)
+  events 870546 (58041/s)   generator CPU 50%   SUT CPU 22.97 core-s (1.53 cores)
+  request_total          n=7523      p50=568.83ms  p99=632.32ms  p99.9=650.75ms  max=676.86ms
+  time_to_headers        n=7523      p50=2.38ms    p99=26.93ms   p99.9=47.62ms   max=66.75ms
+  time_to_first_event    n=7523      p50=2.81ms    p99=32.93ms   p99.9=55.94ms   max=90.11ms
+  event_delay            n=46001     p50=892µs     p99=14.87ms   p99.9=27.33ms   max=51.77ms
+  dispatch_lag (gen)     n=7523      p50=67µs      p99=1.54ms    p99.9=5.89ms    max=10.33ms
+  ground truth: checked=367 with_injection=73 spans=73 LEAKED=73 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=507µs p99=2.24ms max=40.70ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-tp-tls-h2-r1
+RUN INVALID: dispatch lag p99 1537 µs > 200 µs (generator jitter)

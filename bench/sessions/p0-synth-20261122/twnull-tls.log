@@ -1,0 +1,2 @@
+{"time":"2026-11-22T10:49:19.456505123Z","level":"INFO","msg":"listening","component":"twnull","listen":"127.0.0.1:9304","upstreams":"http://127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+2026/11/22 10:49:19 http: TLS handshake error from 127.0.0.1:35070: EOF

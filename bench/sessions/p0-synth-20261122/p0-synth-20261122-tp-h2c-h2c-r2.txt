@@ -1,0 +1,12 @@
+run p0-synth-20261122-tp-h2c-h2c-r2  mode=http surface=chat target=http://127.0.0.1:9308
+  offered 500/s -> achieved 502/s over 15.0s  (completed 7523 of 7523 offered, abandoned 0)
+  events 870546 (58041/s)   generator CPU 51%   SUT CPU 20.93 core-s (1.40 cores)
+  request_total          n=7523      p50=579.07ms  p99=2.27s     p99.9=2.44s     max=2.51s
+  time_to_headers        n=7523      p50=4.29ms    p99=185.85ms  p99.9=293.12ms  max=317.69ms
+  time_to_first_event    n=7523      p50=5.38ms    p99=222.72ms  p99.9=317.69ms  max=348.42ms
+  event_delay            n=42660     p50=2.19ms    p99=151.94ms  p99.9=242.94ms  max=279.81ms
+  dispatch_lag (gen)     n=7523      p50=85µs      p99=12.34ms   p99.9=20.22ms   max=26.45ms
+  ground truth: checked=357 with_injection=88 spans=88 LEAKED=88 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=121µs p99=1.23s max=1.77s
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-tp-h2c-h2c-r2
+RUN INVALID: dispatch lag p99 12335 µs > 200 µs (generator jitter)

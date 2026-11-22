@@ -1,0 +1,12 @@
+run p0-synth-20261122-trace-poisson-null-r1  mode=http surface=chat target=http://127.0.0.1:9302
+  offered 500/s -> achieved 502/s over 15.0s  (completed 7523 of 7523 offered, abandoned 0)
+  events 870546 (58041/s)   generator CPU 51%   SUT CPU 19.87 core-s (1.32 cores)
+  request_total          n=7523      p50=568.32ms  p99=629.25ms  p99.9=646.14ms  max=677.89ms
+  time_to_headers        n=7523      p50=1.98ms    p99=26.57ms   p99.9=36.86ms   max=39.17ms
+  time_to_first_event    n=7523      p50=1.99ms    p99=26.66ms   p99.9=36.86ms   max=39.17ms
+  event_delay            n=43722     p50=662µs     p99=12.18ms   p99.9=17.02ms   max=26.48ms
+  dispatch_lag (gen)     n=7523      p50=71µs      p99=1.50ms    p99.9=4.32ms    max=7.83ms
+  ground truth: checked=402 with_injection=77 spans=77 LEAKED=77 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=480µs p99=1.53ms max=16.18ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-trace-poisson-null-r1
+RUN INVALID: dispatch lag p99 1503 µs > 200 µs (generator jitter)

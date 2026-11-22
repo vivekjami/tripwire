@@ -1,0 +1,109 @@
+{
+  "run_id": "p0-synth-20261122-fit-L1000-e256-r1",
+  "started_utc": "2026-11-22T10:39:42.196584525Z",
+  "mode": "http",
+  "surface": "chat",
+  "target": "http://127.0.0.1:9302",
+  "offered_rate_per_s": 1000,
+  "offered_count": 15003,
+  "completed": 14164,
+  "achieved_rate_per_s": 944.2734178438949,
+  "window_seconds": 14.999892756,
+  "abandoned_after_drain": 0,
+  "undispatched": 0,
+  "errors": {
+    "status_502": 565,
+    "unexpected_eof": 274
+  },
+  "request_total": {
+    "count": 14164,
+    "min_us": 2113536,
+    "p50_us": 17219583,
+    "p90_us": 24969215,
+    "p99_us": 28262399,
+    "p999_us": 30212095,
+    "max_us": 33439743,
+    "mean_us": 15571953.685399603
+  },
+  "time_to_headers": {
+    "count": 14164,
+    "min_us": 2312,
+    "p50_us": 8257535,
+    "p90_us": 21676031,
+    "p99_us": 25214975,
+    "p999_us": 27754495,
+    "max_us": 29491199,
+    "mean_us": 10634040.605266869
+  },
+  "time_to_first_event": {
+    "count": 14164,
+    "min_us": 2324,
+    "p50_us": 8257535,
+    "p90_us": 21676031,
+    "p99_us": 25214975,
+    "p999_us": 27754495,
+    "max_us": 29491199,
+    "mean_us": 10634080.013908496
+  },
+  "dispatch_lag": {
+    "count": 15003,
+    "min_us": 4,
+    "p50_us": 112,
+    "p90_us": 1558,
+    "p99_us": 11295,
+    "p999_us": 24559,
+    "max_us": 34175,
+    "mean_us": 704.2356195427582
+  },
+  "event_delay": {
+    "count": 326063,
+    "min_us": 15,
+    "p50_us": 11959,
+    "p90_us": 29631,
+    "p99_us": 46911,
+    "p999_us": 73727,
+    "max_us": 9830399,
+    "mean_us": 14597.535086777702
+  },
+  "events_received": 6324191,
+  "events_per_s": 421615.7477172832,
+  "gen_cpu_seconds": 27.737308,
+  "gen_cpu_util": 0.6163890291572252,
+  "sut_cpu_seconds": 19.899999999999977,
+  "ground_truth": {
+    "checked": 758,
+    "with_injection": 147,
+    "spans_total": 147,
+    "spans_leaked": 147,
+    "streams_leaked": 147,
+    "leaks_by_class": {
+      "PCI.PAN": 147
+    },
+    "benign_altered": 0,
+    "parse_errors": 0,
+    "incomplete": 0,
+    "missing_ground_truth": 0
+  },
+  "mock_stats": {
+    "streams_started": 17427,
+    "streams_done": 17427,
+    "streams_active": 0,
+    "events_emitted": 7691679,
+    "requests": 17427,
+    "emit_jitter": {
+      "count": 7691679,
+      "min_us": 1,
+      "p50_us": 261631,
+      "p90_us": 5664767,
+      "p99_us": 16285695,
+      "p999_us": 21397503,
+      "max_us": 27394047,
+      "mean_us": 1861116.5494501288
+    }
+  },
+  "valid": false,
+  "invalid_reasons": [
+    "generator CPU 62% \u003e 60% (generator was the bottleneck)",
+    "dispatch lag p99 11295 µs \u003e 200 µs (generator jitter)"
+  ]
+}

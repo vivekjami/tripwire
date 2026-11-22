@@ -10,3 +10,5 @@ Result directories are **immutable once published**; a rerun gets a new run id.
 Runs whose `env.json` says `WSL2 (shape-only ...)` are development runs: they validate the harness and the shape of the curves, and are **not publishable numbers**.
 
 `p0-local-*` are the Phase 0 single-host shape runs (see `docs/phases/P0.md`).
+
+`p0-synth-20261122-*` are the 53 runs of the Phase 0 **synthetic local rig** session (`make rig-local`; log, pre-flight output and `analysis.md` in `bench/sessions/p0-synth-20261122/`). All are `valid=false` (dispatch-lag p99 > 200 µs on this virtualised host; three direct runs at 1000 req/s also exceeded 60 % generator CPU) and shape-only. Their `env.json` records the parent commit with `git_dirty=true`, because the session's own tooling was committed together with the results.

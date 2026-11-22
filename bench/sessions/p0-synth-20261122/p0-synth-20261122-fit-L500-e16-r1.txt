@@ -1,0 +1,12 @@
+run p0-synth-20261122-fit-L500-e16-r1  mode=http surface=chat target=http://127.0.0.1:9302
+  offered 500/s -> achieved 502/s over 15.0s  (completed 7523 of 7523 offered, abandoned 0)
+  events 247790 (16521/s)   generator CPU 31%   SUT CPU 6.93 core-s (0.46 cores)
+  request_total          n=7523      p50=150.78ms  p99=191.62ms  p99.9=201.73ms  max=220.93ms
+  time_to_headers        n=7523      p50=636µs     p99=1.25ms    p99.9=2.35ms    max=4.44ms
+  time_to_first_event    n=7523      p50=641µs     p99=1.26ms    p99.9=2.35ms    max=4.44ms
+  event_delay            n=12190     p50=184µs     p99=516µs     p99.9=836µs     max=3.90ms
+  dispatch_lag (gen)     n=7523      p50=57µs      p99=264µs     p99.9=945µs     max=2.51ms
+  ground truth: checked=369 with_injection=78 spans=78 LEAKED=78 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=474µs p99=1.25ms max=2.32ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-fit-L500-e16-r1
+RUN INVALID: dispatch lag p99 264 µs > 200 µs (generator jitter)

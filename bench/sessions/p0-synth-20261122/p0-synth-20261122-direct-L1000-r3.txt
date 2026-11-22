@@ -1,0 +1,12 @@
+run p0-synth-20261122-direct-L1000-r3  mode=http surface=chat target=http://127.0.0.1:9300
+  offered 1000/s -> achieved 1000/s over 15.0s  (completed 15003 of 15003 offered, abandoned 0)
+  events 1735037 (115670/s)   generator CPU 66%
+  request_total          n=15003     p50=579.07ms  p99=826.37ms  p99.9=906.24ms  max=977.41ms
+  time_to_headers        n=15003     p50=4.75ms    p99=248.96ms  p99.9=335.10ms  max=378.37ms
+  time_to_first_event    n=15003     p50=4.76ms    p99=248.96ms  p99.9=335.10ms  max=378.37ms
+  event_delay            n=83091     p50=64µs      p99=3.66ms    p99.9=8.41ms    max=24.51ms
+  dispatch_lag (gen)     n=15003     p50=153µs     p99=12.70ms   p99.9=21.02ms   max=27.15ms
+  ground truth: checked=793 with_injection=156 spans=156 LEAKED=156 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=616µs p99=62.46ms max=363.77ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-direct-L1000-r3
+RUN INVALID: generator CPU 66% > 60% (generator was the bottleneck); dispatch lag p99 12695 µs > 200 µs (generator jitter)

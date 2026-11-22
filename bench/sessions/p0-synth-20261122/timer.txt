@@ -1,0 +1,5 @@
+sleep 50µs   overshoot p50=1.10ms   p99=1.40ms   max=1.69ms
+sleep 200µs  overshoot p50=1.07ms   p99=1.29ms   max=11.15ms
+sleep 1ms    overshoot p50=316µs    p99=490µs    max=640µs
+sleep 2ms    overshoot p50=565µs    p99=871µs    max=1.03ms
+set --spin-margin above the p99 overshoot of the ~1ms sleep (the dispatcher sleeps only when the gap is > 2x the margin)

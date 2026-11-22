@@ -1,0 +1,12 @@
+run p0-synth-20261122-null-L250-r3  mode=http surface=chat target=http://127.0.0.1:9302
+  offered 250/s -> achieved 250/s over 15.0s  (completed 3755 of 3755 offered, abandoned 0)
+  events 434636 (28980/s)   generator CPU 25%   SUT CPU 8.15 core-s (0.54 cores)
+  request_total          n=3755      p50=565.76ms  p99=626.17ms  p99.9=641.53ms  max=657.41ms
+  time_to_headers        n=3755      p50=685µs     p99=1.50ms    p99.9=2.06ms    max=3.19ms
+  time_to_first_event    n=3755      p50=691µs     p99=1.51ms    p99.9=2.10ms    max=3.21ms
+  event_delay            n=22477     p50=208µs     p99=596µs     p99.9=1.09ms    max=4.05ms
+  dispatch_lag (gen)     n=3755      p50=45µs      p99=363µs     p99.9=1.14ms    max=2.75ms
+  ground truth: checked=169 with_injection=32 spans=32 LEAKED=32 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=543µs p99=1.25ms max=3.56ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-null-L250-r3
+RUN INVALID: dispatch lag p99 363 µs > 200 µs (generator jitter)

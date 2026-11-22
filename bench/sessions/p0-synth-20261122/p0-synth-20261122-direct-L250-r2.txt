@@ -1,0 +1,12 @@
+run p0-synth-20261122-direct-L250-r2  mode=http surface=chat target=http://127.0.0.1:9300
+  offered 250/s -> achieved 250/s over 15.0s  (completed 3755 of 3755 offered, abandoned 0)
+  events 434636 (28980/s)   generator CPU 21%
+  request_total          n=3755      p50=565.76ms  p99=625.66ms  p99.9=641.02ms  max=656.89ms
+  time_to_headers        n=3755      p50=375µs     p99=789µs     p99.9=1.38ms    max=1.84ms
+  time_to_first_event    n=3755      p50=378µs     p99=790µs     p99.9=1.38ms    max=1.84ms
+  event_delay            n=22834     p50=70µs      p99=275µs     p99.9=393µs     max=1.87ms
+  dispatch_lag (gen)     n=3755      p50=41µs      p99=352µs     p99.9=1.12ms    max=1.29ms
+  ground truth: checked=184 with_injection=34 spans=34 LEAKED=34 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=555µs p99=1.30ms max=2.11ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p0-synth-20261122-direct-L250-r2
+RUN INVALID: dispatch lag p99 352 µs > 200 µs (generator jitter)
