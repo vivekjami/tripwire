@@ -65,8 +65,17 @@ func Sampled(streamID string, frac float64) bool {
 		return false
 	}
 	h := fnv.New64a()
-	h.Write([]byte(streamID))
-	return float64(h.Sum64()>>11)/float64(1<<53) < frac
+	_, _ = h.Write([]byte(streamID))
+	// FNV-1a's high bits are poorly distributed for structured ids such as
+	// "<run>-<n>" (observed: a requested 10 % sample came out anywhere from 5 %
+	// to 35 % depending on the run prefix). Finalize with the murmur3 avalanche.
+	x := h.Sum64()
+	x ^= x >> 33
+	x *= 0xff51afd7ed558ccd
+	x ^= x >> 33
+	x *= 0xc4ceb9fe1a85ec53
+	x ^= x >> 33
+	return float64(x>>11)/float64(1<<53) < frac
 }
 
 // Writer appends Stream records as JSON lines.

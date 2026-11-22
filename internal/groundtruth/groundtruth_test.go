@@ -146,3 +146,22 @@ func TestWriterLoadRoundTripAndEmitLog(t *testing.T) {
 		t.Fatalf("emit round trip mismatch: %+v", em)
 	}
 }
+
+// Regression: sampling must be uniform for the id shapes twload really
+// generates ("<run-id>-<seq>"), for every run prefix, not just for varied ids.
+func TestSampledUniformForStructuredIDs(t *testing.T) {
+	for _, prefix := range []string{"p0-local-direct", "p0-local-null-e64", "20261122T085103Z", "r", "join-base"} {
+		for _, frac := range []float64{0.05, 0.1, 0.5} {
+			const n = 20000
+			hit := 0
+			for i := 0; i < n; i++ {
+				if Sampled(prefix+"-"+itoa(i), frac) {
+					hit++
+				}
+			}
+			if r := float64(hit) / n; r < frac*0.85 || r > frac*1.15 {
+				t.Errorf("prefix %q frac %.2f: sampled %.4f", prefix, frac, r)
+			}
+		}
+	}
+}

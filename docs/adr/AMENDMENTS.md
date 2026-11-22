@@ -47,3 +47,7 @@ The plan prefers a timer wheel for mock emission to bound jitter. The mock uses 
 
 ### AMD-010: rig tooling is provider-agnostic
 `deploy/rig/rig.sh` supports bring-your-own hosts and a provider hook; **no Terraform/cloud scripts are shipped** because the provider is a user decision not yet made (see `docs/phases/P0.md` open items). Consequence: the plan's "`make rig-down` verified (no orphaned resources)" criterion cannot be met until a provider hook exists.
+
+### AMD-011: stream sampling uses an avalanche-finalized hash
+`groundtruth.Sampled` (shared by twmock and twload to decide which streams get emit-timestamp logging and checks) hashed ids with FNV-1a and took the high bits. For structured ids (`<run-id>-<n>`) that is poorly distributed: a requested 10 % sample came out between ≈ 5 % and 35 % depending on the run prefix, found when the joined-event counts of the first committed local runs did not scale with `-emit-sample`. Fixed with a murmur3 finalizer; `TestSampledUniformForStructuredIDs` fails on the old hash (12-13 % for a requested 10 %, 6.5 % for 5 %) and passes on the new.
+**Consequence:** the first batch of `p0-local-*` results (never published) was regenerated; any result produced before commit "groundtruth: fix biased stream sampling" has a non-uniform sampled subset and must not be used for per-event percentiles.
