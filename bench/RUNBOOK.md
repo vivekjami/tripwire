@@ -25,3 +25,6 @@ Procedure for every published number (IMPLEMENTATION_PLAN §12.2). Development o
 
 ## Analysis rules
 Merge HdrHistograms across runs (never average percentiles); report p50/p99/p99.9/max with offered vs achieved rate; show the latency-vs-load curve with the knee; state the coordinated-omission correction (open loop, intended-time stamping) in every chart caption. "Added latency" = `twload diff` of the same measurement through the proxy vs direct (percentile-wise difference; an approximation of the distribution of differences, stated beside every chart).
+
+## Synthetic local rig (no cloud needed)
+`make rig-local S=<name>` runs this whole procedure on one host with `deploy/rig/providers/local.sh` (generator / mock / gateway pinned to disjoint cores; throw-away CA for TLS; teardown verifies no processes, no listeners, no state dir). `make rig-local-analyze S=<name>` writes the tables. It validates the *procedure and tooling* and gives the shape of the curves; on a virtualised laptop every run is `valid=false`, so nothing from it is citable. A real rig session replaces it with `make rig-up` + the same analysis script.

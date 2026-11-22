@@ -96,6 +96,12 @@ rig-down: ## tear the rig down; ALWAYS run after a bench session
 rig-status:
 	deploy/rig/rig.sh status
 
+.PHONY: rig-local rig-local-analyze
+rig-local: ## full Phase 0 session on the SYNTHETIC single-host rig (~20 min; shape-only results)
+	RIG_PROVIDER=local scripts/rig-local-session.sh $(S)
+rig-local-analyze: ## tables + capacity fit for session S=<name> -> bench/sessions/<S>/analysis.md
+	scripts/rig-local-analyze.sh $(S)
+
 .PHONY: clean
 clean:
 	rm -rf $(BIN) .bench-quick .bench-micro.txt

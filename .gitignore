@@ -42,3 +42,7 @@ idea/
 
 # rig
 deploy/rig/rig.env
+
+# synthetic rig scratch and generated data
+.rig-local/
+bench/data/*.csv

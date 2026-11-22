@@ -23,6 +23,8 @@ type Config struct {
 	Target string // base URL, e.g. http://127.0.0.1:9000
 	Mode   string // http | mcp | connections | lineage
 	H2C    bool   // speak HTTP/2 cleartext to Target
+	TLSCA  string // PEM roots to trust for an https Target (verification is never disabled)
+	H2TLS  bool   // https Target: negotiate HTTP/2 via ALPN (default HTTP/1.1 over TLS)
 
 	// Arrival process
 	Rate     float64

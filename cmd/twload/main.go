@@ -50,6 +50,8 @@ func runCmd(args []string) int {
 		mode     = fs.String("mode", "http", "http | mcp | connections | lineage")
 		surface  = fs.String("surface", "chat", "chat | responses")
 		h2c      = fs.Bool("h2c", false, "speak h2c to the target")
+		tlsCA    = fs.String("tls-ca", "", "PEM roots to trust for an https target (certificate verification stays on)")
+		h2tls    = fs.Bool("h2", false, "https target: use HTTP/2 via ALPN instead of HTTP/1.1")
 		rate     = fs.Float64("rate", 1000, "mean arrival rate, requests/s (Poisson unless --trace)")
 		dur      = fs.Duration("duration", 30*time.Second, "measurement window")
 		warm     = fs.Duration("warmup", 5*time.Second, "warm-up (discarded)")
@@ -89,7 +91,7 @@ func runCmd(args []string) int {
 	}
 
 	cfg := load.Config{
-		RunID: *runID, Target: *target, Mode: *mode, Surface: *surface, H2C: *h2c,
+		RunID: *runID, Target: *target, Mode: *mode, Surface: *surface, H2C: *h2c, TLSCA: *tlsCA, H2TLS: *h2tls,
 		Rate: *rate, Duration: *dur, Warmup: *warm, Seed: *seed, MaxInflight: *maxIn, SpinMargin: *spin,
 		StreamFrac: *streamFrac, Events: *events, Gap: *gap, Chunk: *chunk, InjectFrac: *injectFrac, FaultFrac: *faultFrac,
 		MCPVersion: *mcpVer, MCPTool: *mcpTool, MCPMismatchFrac: *mcpMismatch, IdleConns: *idle,

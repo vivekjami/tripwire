@@ -99,9 +99,13 @@ func New(cfg Config) (*Runner, error) {
 	if _, err := sysutil.RaiseNoFile(); err != nil {
 		return nil, fmt.Errorf("load: raising RLIMIT_NOFILE: %w", err)
 	}
+	client, err := newClient(cfg.H2C, cfg.TLSCA, cfg.H2TLS)
+	if err != nil {
+		return nil, err
+	}
 	r := &Runner{
 		cfg:      cfg,
-		client:   newClient(cfg.H2C),
+		client:   client,
 		sem:      make(chan struct{}, cfg.MaxInflight),
 		reqTotal: hist.New(histMaxUS, 3), ttfh: hist.New(histMaxUS, 3), ttfe: hist.New(histMaxUS, 3),
 		lag: hist.New(histMaxUS, 3), connect: hist.New(histMaxUS, 3),

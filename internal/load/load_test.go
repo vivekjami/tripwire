@@ -3,6 +3,7 @@ package load
 import (
 	"context"
 	"encoding/json"
+	"encoding/pem"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -268,5 +269,64 @@ func TestH2CClient(t *testing.T) {
 	}
 	if got, _ := proto.Load().(string); got != "HTTP/2.0" {
 		t.Fatalf("server saw %q, want HTTP/2.0", got)
+	}
+}
+
+// The TLS client path must verify against the supplied CA and negotiate the
+// requested protocol (h1 by default, h2 with H2TLS).
+func TestTLSClientProtocols(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		h2    bool
+		proto string
+	}{{"h1", false, "HTTP/1.1"}, {"h2", true, "HTTP/2.0"}} {
+		t.Run(tc.name, func(t *testing.T) {
+			srv := mock.New(mock.Config{DefaultGap: "none", DefaultEvents: 8})
+			var proto atomic.Value
+			h := srv.Handler()
+			ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				if r.URL.Path == "/v1/chat/completions" {
+					proto.Store(r.Proto)
+				}
+				h.ServeHTTP(w, r)
+			}))
+			ts.EnableHTTP2 = true
+			ts.StartTLS()
+			defer ts.Close()
+			caPath := filepath.Join(t.TempDir(), "ca.pem")
+			pemBytes := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: ts.Certificate().Raw})
+			if err := os.WriteFile(caPath, pemBytes, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			run, err := New(Config{Target: ts.URL, TLSCA: caPath, H2TLS: tc.h2, Rate: 100, Duration: time.Second, Seed: 1, Events: 8, Gap: "none", StreamFrac: 1})
+			if err != nil {
+				t.Fatal(err)
+			}
+			s, err := run.Run()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if s.Completed < 50 || len(s.Errors) != 0 {
+				t.Fatalf("completed=%d errors=%v", s.Completed, s.Errors)
+			}
+			if got, _ := proto.Load().(string); got != tc.proto {
+				t.Fatalf("server saw %q, want %q", got, tc.proto)
+			}
+		})
+	}
+	// Without the CA the handshake must fail (verification is not skippable).
+	srv := mock.New(mock.Config{DefaultGap: "none", DefaultEvents: 2})
+	ts := httptest.NewTLSServer(srv.Handler())
+	defer ts.Close()
+	run, err := New(Config{Target: ts.URL, Rate: 50, Duration: 500 * time.Millisecond, Seed: 1, Events: 2, Gap: "none", StreamFrac: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := run.Run()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Completed != 0 && len(s.Errors) == 0 {
+		t.Fatalf("untrusted cert must fail: completed=%d", s.Completed)
 	}
 }

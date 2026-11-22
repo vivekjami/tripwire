@@ -36,6 +36,8 @@ provider() {
 case "$cmd" in
   up)
     [[ -n "${RIG_PROVIDER:-}" ]] && provider up
+    # the "local" provider is a self-contained single-host synthetic rig: no ssh hosts
+    [[ "${RIG_PROVIDER:-}" == local ]] && exit 0
     load_env
     mkdir -p "$root/.bin"
     ( cd "$root" && CGO_ENABLED=0 go build -trimpath -o .bin/ ./cmd/twmock ./cmd/twnull ./cmd/twload ./cmd/twfit )
@@ -50,6 +52,7 @@ case "$cmd" in
     echo "rig up. Next: bench/RUNBOOK.md pre-flight (noise canary, twload timer, make selfcheck)."
     ;;
   down)
+    if [[ "${RIG_PROVIDER:-}" == local ]]; then provider down; exit $?; fi
     if [[ -f "$here/rig.env" ]]; then
       load_env
       for h in "$HOST_A" "$HOST_B" "$HOST_C"; do
