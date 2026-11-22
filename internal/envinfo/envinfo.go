@@ -113,7 +113,17 @@ func Capture() *Env {
 	return e
 }
 
+// gitInfo returns the commit and whether tracked files differ from it. "Dirty"
+// deliberately ignores UNTRACKED files (new results/notes do not change the code
+// that produced a result); the Go build stamp's vcs.modified counts them, so git
+// is asked directly and the build info is only a fallback (e.g. in a container).
 func gitInfo() (string, bool) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	if out, err := exec.CommandContext(ctx, "git", "rev-parse", "HEAD").Output(); err == nil {
+		st, _ := exec.CommandContext(ctx, "git", "status", "--porcelain", "--untracked-files=no").Output()
+		return strings.TrimSpace(string(out)), len(strings.TrimSpace(string(st))) > 0
+	}
 	if bi, ok := debug.ReadBuildInfo(); ok {
 		var sha string
 		var dirty bool
@@ -129,14 +139,7 @@ func gitInfo() (string, bool) {
 			return sha, dirty
 		}
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-	out, err := exec.CommandContext(ctx, "git", "rev-parse", "HEAD").Output()
-	if err != nil {
-		return "unknown", false
-	}
-	st, _ := exec.CommandContext(ctx, "git", "status", "--porcelain", "--untracked-files=no").Output()
-	return strings.TrimSpace(string(out)), len(strings.TrimSpace(string(st))) > 0
+	return "unknown", false
 }
 
 // ScrubHome replaces the user's home directory prefix with "~" so result files
