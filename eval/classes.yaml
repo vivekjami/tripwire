@@ -1,0 +1,37 @@
+# Data-class registry (ARCHITECTURE §6.2). Phase 0 deliverable: the taxonomy,
+# its streaming tier (§5.4), linkability (§10.2), severity, and the per-class
+# false-positive target. Values marked [initial] are starting points that
+# Phase 3 tunes on the DEV split only; they are not measured results.
+#
+# tier:        T1 structural (strict hold-back) | T2 session-literal | T3 fuzzy best-effort | T4 classifier | n/a
+# on_uncertain: what happens when stage 3 is skipped (§6.6): act | record | allow
+# fp_per_1k:   [initial] ceiling for false positives per 1,000 benign requests
+version: 1
+classes:
+  - { name: PCI.PAN,               validators: [luhn, iin_range],         tier: T1, linkability: session, severity: critical, stage1: "digit-run tracker + Luhn + IIN table",                 on_uncertain: act,    fp_per_1k: 0.1 }
+  - { name: PCI.CVV,               validators: [keyword_window],          tier: T1, linkability: session, severity: critical, stage1: "context-only: cvv/cvc keyword window",             on_uncertain: act,    fp_per_1k: 0.5, context_only: true }
+  - { name: PCI.EXPIRY,            validators: [keyword_window],          tier: T1, linkability: session, severity: high,     stage1: "context-only: expiry keyword or adjacent to PAN", on_uncertain: record, fp_per_1k: 0.5, context_only: true }
+  - { name: FIN.IBAN,              validators: [iban_mod97, country_len], tier: T1, linkability: tenant,  severity: high,     stage1: "country prefix + length table + mod-97",           on_uncertain: act,    fp_per_1k: 0.1 }
+  - { name: FIN.US_ROUTING,        validators: [aba_3_7_1],               tier: T1, linkability: tenant,  severity: medium,   stage1: "9 digits + 3-7-1 checksum, keyword boost",         on_uncertain: record, fp_per_1k: 0.5 }
+  - { name: GOV.US_SSN,            validators: [ssn_structure],           tier: T1, linkability: session, severity: critical, stage1: "3-2-4 structure + exclusions + context boost",    on_uncertain: act,    fp_per_1k: 0.2 }
+  - { name: GOV.IN_AADHAAR,        validators: [verhoeff],                tier: T1, linkability: session, severity: critical, stage1: "12 digits, Verhoeff, first digit 2-9",             on_uncertain: act,    fp_per_1k: 0.2 }
+  - { name: GOV.IN_PAN,            validators: [shape_entity_code],       tier: T1, linkability: tenant,  severity: high,     stage1: "[A-Z]{5}[0-9]{4}[A-Z], valid 4th letter",         on_uncertain: record, fp_per_1k: 0.5 }
+  - { name: SECRET.AWS_ACCESS_KEY, validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: critical, stage1: "AKIA/ASIA + 16 chars",                              on_uncertain: act,    fp_per_1k: 0.05 }
+  - { name: SECRET.AWS_SECRET,     validators: [keyword_window, entropy], tier: T1, linkability: tenant,  severity: critical, stage1: "40 base64-ish chars near aws_secret keywords",    on_uncertain: act,    fp_per_1k: 0.2, context_only: true }
+  - { name: SECRET.GITHUB_TOKEN,   validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: critical, stage1: "ghp_/github_pat_ prefix + length + charset",       on_uncertain: act,    fp_per_1k: 0.05 }
+  - { name: SECRET.SLACK,          validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: critical, stage1: "xox[abp]- prefix table",                            on_uncertain: act,    fp_per_1k: 0.05 }
+  - { name: SECRET.STRIPE,         validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: critical, stage1: "sk_live_/rk_live_ prefix table",                    on_uncertain: act,    fp_per_1k: 0.05 }
+  - { name: SECRET.GOOGLE_API,     validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: high,     stage1: "AIza prefix + 35 chars",                            on_uncertain: act,    fp_per_1k: 0.1 }
+  - { name: SECRET.OPENAI,         validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: critical, stage1: "sk- prefix table (data file)",                      on_uncertain: act,    fp_per_1k: 0.1 }
+  - { name: SECRET.ANTHROPIC,      validators: [prefix_literal, shape],   tier: T1, linkability: tenant,  severity: critical, stage1: "sk-ant- prefix table (data file)",                  on_uncertain: act,    fp_per_1k: 0.1 }
+  - { name: SECRET.JWT,            validators: [base64url, header_json], tier: T1, linkability: session, severity: high,     stage1: "eyJ... x3, decode header, check alg",              on_uncertain: act,    fp_per_1k: 0.2 }
+  - { name: SECRET.PRIVATE_KEY,    validators: [pem_block],              tier: T1, linkability: tenant,  severity: critical, stage1: "BEGIN marker literal -> in_block suppression",     on_uncertain: act,    fp_per_1k: 0.01 }
+  - { name: SECRET.URL_CRED,       validators: [url_userinfo],           tier: T1, linkability: tenant,  severity: critical, stage1: "scheme://user:pass@host",                           on_uncertain: act,    fp_per_1k: 0.1 }
+  - { name: SECRET.GENERIC,        validators: [keyword_window, entropy], tier: T1, linkability: tenant,  severity: high,     stage1: "password=/token= keyword window + entropy",       on_uncertain: act,    fp_per_1k: 1.0, context_only: true }
+  - { name: PII.CONTACT.EMAIL,     validators: [at_anchor, tld_check],    tier: T2, linkability: session, severity: medium,   stage1: "@ anchor expansion; T2 when known, T3 when novel", on_uncertain: record, fp_per_1k: 0.5 }
+  - { name: PII.CONTACT.PHONE,     validators: [e164_shape],              tier: T3, linkability: session, severity: medium,   stage1: "digit-run + country/length rules + context",       on_uncertain: record, fp_per_1k: 1.0 }
+  - { name: PII.NAME,              validators: [gazetteer],               tier: T2, linkability: session, severity: medium,   stage1: "gazetteer + title cues; stage 3 NER",              on_uncertain: record, fp_per_1k: 2.0 }
+  - { name: PII.ADDRESS,           validators: [gazetteer],               tier: T4, linkability: session, severity: medium,   stage1: "street-suffix gazetteer + number + postcode",      on_uncertain: record, fp_per_1k: 2.0 }
+  - { name: PII.ORG,               validators: [gazetteer],               tier: T4, linkability: tenant,  severity: low,      stage1: "gazetteer; stage 3 NER",                            on_uncertain: record, fp_per_1k: 3.0 }
+  - { name: CUSTOM.DICT,           validators: [aho_corasick],            tier: T2, linkability: tenant,  severity: medium,   stage1: "tenant dictionary (CUSTOM.DICT.<name>)",           on_uncertain: act,    fp_per_1k: 0.5 }
+  - { name: LABEL.CONFIDENTIAL,    validators: [phrase_table],            tier: T1, linkability: tenant,  severity: medium,   stage1: "classification-marking phrase table",              on_uncertain: record, fp_per_1k: 2.0 }

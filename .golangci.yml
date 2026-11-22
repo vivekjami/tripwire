@@ -1,0 +1,47 @@
+# golangci-lint config (IMPLEMENTATION_PLAN WP0.1). CI also runs go vet,
+# staticcheck and govulncheck directly.
+version: "2"
+run:
+  timeout: 5m
+linters:
+  default: none
+  enable:
+    - errcheck
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    - bodyclose
+    - errorlint
+    - gosec
+    - misspell
+    - nilerr
+    - noctx
+  settings:
+    errcheck:
+      # Errors that are either sticky until Flush, unactionable, or conventional to ignore.
+      exclude-functions:
+        - (*os.File).Close
+        - (io.Closer).Close
+        - (*bufio.Writer).Write
+        - (*bufio.Writer).WriteByte
+        - (*bufio.Writer).WriteString
+        - (*encoding/json.Encoder).Encode
+        - io.WriteString
+        - io.Copy
+        - fmt.Fprintf
+        - fmt.Fprintln
+        - (net/http.ResponseWriter).Write
+    gosec:
+      excludes:
+        - G104   # unhandled-error noise; errcheck covers real cases
+        - G115   # integer conversions are range-checked at the boundaries that matter
+        - G304   # file paths come from the operator's own CLI flags
+        - G402   # no TLS client configs in Phase 0
+        - G404   # math/rand is deliberate: seeded, reproducible test data (never security material)
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters: [gosec, errcheck, noctx, bodyclose]
+formatters:
+  enable: [gofmt]

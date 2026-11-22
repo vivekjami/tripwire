@@ -1,0 +1,58 @@
+name: ci
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions: { contents: read }
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go.mod, cache: true }
+      - name: gofmt
+        run: test -z "$(gofmt -l cmd internal)"
+      - name: vet
+        run: go vet ./...
+      - name: staticcheck
+        run: go run honnef.co/go/tools/cmd/staticcheck@v0.8.2 ./...
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@latest ./...
+      - name: test (race, short)
+        run: go test -race -short -count=1 ./...
+      - name: escape-analysis gate
+        run: scripts/escape-check.sh
+      - name: fuzz smoke (30 s per target)
+        run: FUZZTIME=30s scripts/fuzz-smoke.sh
+      - name: microbenchmarks
+        run: go test -run '^$' -bench . -benchmem -count=3 ./internal/... | tee bench.txt
+      - uses: actions/upload-artifact@v4
+        with: { name: microbench, path: bench.txt }
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go.mod, cache: true }
+      - uses: golangci/golangci-lint-action@v8
+        with: { version: latest }
+
+  selfcheck:
+    # Harness self-validation. Shared CI runners have noisy timers, so the two
+    # timer-bound thresholds are logged, not enforced (the strict run is on the rig).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go.mod, cache: true }
+      - run: make selfcheck-laptop
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with: { go-version-file: go.mod, cache: true }
+      - run: CGO_ENABLED=0 go build -trimpath ./...

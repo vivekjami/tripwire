@@ -1,0 +1,8 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+scrape_configs:
+  - job_name: twnull       # the pass-through floor now; the gateway from Phase 1
+    static_configs: [{ targets: ["twnull:9201"] }]
+  - job_name: twmock
+    static_configs: [{ targets: ["twmock:9100"] }]
