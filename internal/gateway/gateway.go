@@ -18,6 +18,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"reflect"
 	"runtime"
 	"runtime/debug"
 	"strconv"
@@ -105,10 +106,18 @@ func New(cfg *config.Config, opt Options) (*Server, error) {
 	if opt.Metrics == nil {
 		opt.Metrics = obs.NewRegistry()
 	}
-	if opt.Routes == nil {
-		opt.Routes = http.HandlerFunc(notImplemented)
-	}
 	s := &Server{cfg: cfg, opt: opt, log: opt.Log, m: newMetrics(opt.Metrics), inflight: auth.NewGate(cfg.Limits.GlobalInflight)}
+	if opt.Routes == nil {
+		if len(cfg.Routes) > 0 {
+			api, err := s.newChatAPI()
+			if err != nil {
+				return nil, err
+			}
+			s.opt.Routes = api.Handler()
+		} else {
+			s.opt.Routes = http.HandlerFunc(notImplemented)
+		}
+	}
 	pepper, err := auth.ReadPepper(cfg.Auth.PepperFile)
 	if err != nil {
 		return nil, err
@@ -151,8 +160,9 @@ func (s *Server) Reload() error {
 				s.reg.Store(r)
 				s.m.regAgents.Set(float64(r.Len()))
 				s.m.regReload.WithLabelValues("ok").Inc()
-				if nc.Listen != s.cfg.Listen || nc.Limits != s.cfg.Limits || nc.Runtime != s.cfg.Runtime {
-					s.log.Warn("listener, limit or runtime settings changed; they apply only after a restart", "reason", "restart_required")
+				if nc.Listen != s.cfg.Listen || nc.Limits != s.cfg.Limits || nc.Runtime != s.cfg.Runtime ||
+					!reflect.DeepEqual(nc.Upstreams, s.cfg.Upstreams) || !reflect.DeepEqual(nc.Routes, s.cfg.Routes) {
+					s.log.Warn("listener, limit, runtime, upstream or route settings changed; they apply only after a restart", "reason", "restart_required")
 				}
 				s.log.Info("registry reloaded", "count", r.Len())
 				return nil
@@ -166,7 +176,7 @@ func (s *Server) Reload() error {
 
 // Handler returns the data-plane handler (exported for tests and embedding).
 func (s *Server) Handler() http.Handler {
-	return s.recoverMW(s.requestIDMW(s.shedMW(s.authMW(s.limitMW(s.opt.Routes)))))
+	return s.recoverMW(s.requestIDMW(s.framingMW(s.shedMW(s.authMW(s.limitMW(s.opt.Routes))))))
 }
 
 // Ready reports readiness: listeners up and not draining.
@@ -302,6 +312,25 @@ func (s *Server) requestIDMW(next http.Handler) http.Handler {
 		}
 		s.m.requests.WithLabelValues(strconv.Itoa(code/100) + "xx").Inc()
 		s.m.reqDuration.Observe(time.Since(start).Seconds())
+	})
+}
+
+// framingMW closes the HTTP/1 request-smuggling class (ARCHITECTURE §12.5).
+// Go's parser accepts "Transfer-Encoding: chunked" together with a
+// Content-Length (chunked wins and the Content-Length header is deleted before
+// handlers run, so the combination cannot be observed here). Rather than trust
+// every other hop to resolve that ambiguity the same way, the data plane
+// refuses Transfer-Encoding altogether: API clients send a Content-Length for
+// JSON bodies. The connection is closed so no leftover bytes are re-parsed.
+func (s *Server) framingMW(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if len(r.TransferEncoding) > 0 || r.Header.Get("Transfer-Encoding") != "" {
+			s.m.shed.WithLabelValues("framing").Inc()
+			w.Header().Set("Connection", "close")
+			writeErr(w, http.StatusBadRequest, "invalid_request_error", "unsupported_transfer_encoding", "Transfer-Encoding is not supported; send Content-Length")
+			return
+		}
+		next.ServeHTTP(w, r)
 	})
 }
 

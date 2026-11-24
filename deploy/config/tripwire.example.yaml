@@ -15,6 +15,8 @@ limits:                        # values shown are the defaults (ARCHITECTURE §1
   body_bytes: 8388608
   write_deadline: 10s
   drain_timeout: 30s
+  response_bytes: 16777216     # non-stream upstream response cap
+  decompress_ratio: 20         # max decompressed/compressed request size (gzip bomb defence)
   global_inflight: 60000       # excess requests get 429 + Retry-After
 
 runtime:
@@ -25,6 +27,13 @@ upstreams:
   openai:
     url: https://api.openai.com
     credential_file: /run/secrets/openai_key    # the gateway injects this; agents never hold it
+    timeout: 60s               # non-stream deadline
+    retries: 1                 # only for requests that provably never reached the upstream (dial failures)
+    # h2c: false               # cleartext HTTP/2 to an http:// upstream
+
+routes:                        # first match wins; a model with no route does not exist to any agent
+  - {model: "gpt-*", upstream: openai}
+  - {model: "o1*", upstream: openai}
 
 auth:
   pepper_file: /run/secrets/tripwire_pepper

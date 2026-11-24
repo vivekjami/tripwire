@@ -74,3 +74,12 @@ The key format puts the agent id before the first `_`, so agent ids may not cont
 
 ### AMD-016: the admin plane has no mTLS or RBAC yet
 `listen.admin` is a separate listener (loopback by default) serving `/metrics`, pprof and health, but without the mTLS/RBAC ARCHITECTURE §14.1 requires for the full admin plane (policy upload, approvals, reload). Only read-only endpoints exist, so loopback binding is the control for now. **Do not bind the admin listener to a non-loopback address until this is done.**
+
+### AMD-017: the data plane refuses `Transfer-Encoding`; obs-fold and bare-LF are left to the stdlib parser
+ARCHITECTURE §12.5 says to reject requests carrying both `Content-Length` and `Transfer-Encoding`. Go's HTTP/1 server resolves that combination itself (chunked wins) and **deletes `Content-Length` before handlers run**, so a handler cannot observe the pair. The harness showed such a request reaching the upstream. The data plane therefore rejects *any* request with `Transfer-Encoding` (400, `Connection: close`); API clients send `Content-Length` for JSON bodies. `TestSmugglingBothCLAndTERejectedBeforeAnyForwarding` covers it.
+Obsolete line folding and bare-LF line endings are accepted by Go's parser, deterministically. Detecting them would need a custom HTTP/1 scanner, which §12.5 forbids ("no custom HTTP/1 parsing"). The tests assert the property that matters: a pipelined second request is parsed independently, is unauthenticated, and never reaches the upstream or succeeds.
+**Residual risk:** a different, laxer HTTP front-end in front of the gateway could disagree with Go about those two cases. **Deployment rule:** put only TLS-terminating or L4 load balancers in front of the edge.
+**Revisit when:** a deployment needs chunked request bodies (then add a bounded dechunker behind explicit config), or Go's parser changes.
+
+### AMD-018: strict JSON also rejects numbers that overflow float64
+Found by the differential fuzz target in the first minute (`1e1000`): valid JSON grammar, but Go's decoder errors while other parsers produce infinity or a bignum. The scanner rejects it (`number out of range`). Lone surrogate escapes are also rejected in the non-stream scanner; the streaming scanner (WP1.5) must instead *resume* split pairs across events.

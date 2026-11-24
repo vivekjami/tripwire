@@ -28,6 +28,7 @@ type Config struct {
 	Limits    Limits              `yaml:"limits"`
 	Runtime   Runtime             `yaml:"runtime"`
 	Upstreams map[string]Upstream `yaml:"upstreams"`
+	Routes    []Route             `yaml:"routes"`
 	Auth      Auth                `yaml:"auth"`
 	Agents    []Agent             `yaml:"agents"`
 }
@@ -53,6 +54,8 @@ type Limits struct {
 	ReadHeaderTimeout time.Duration `yaml:"read_header_timeout"`
 	IdleTimeout       time.Duration `yaml:"idle_timeout"`
 	BodyBytes         int64         `yaml:"body_bytes"`
+	ResponseBytes     int64         `yaml:"response_bytes"`   // non-stream upstream response cap
+	DecompressRatio   int           `yaml:"decompress_ratio"` // max decompressed/compressed request size
 	WriteDeadline     time.Duration `yaml:"write_deadline"`
 	DrainTimeout      time.Duration `yaml:"drain_timeout"`
 	MaxConnections    int           `yaml:"max_connections"` // 0 = no connection cap
@@ -69,7 +72,17 @@ type Runtime struct {
 type Upstream struct {
 	URL            string        `yaml:"url"`
 	CredentialFile string        `yaml:"credential_file"` // file holding the upstream bearer token; never the agent's
-	Timeout        time.Duration `yaml:"timeout"`
+	Timeout        time.Duration `yaml:"timeout"`         // non-stream request deadline (default 60s)
+	H2C            bool          `yaml:"h2c"`             // speak cleartext HTTP/2 to an http:// upstream
+	Retries        int           `yaml:"retries"`         // retries (0-3) of requests that provably never reached the upstream; 0 = none
+}
+
+// Route sends requests for models matching a glob to a named upstream. The first
+// matching route wins; a model with no route does not exist, as far as any
+// agent can tell.
+type Route struct {
+	Model    string `yaml:"model"`
+	Upstream string `yaml:"upstream"`
 }
 
 // Auth configures authentication sources.
@@ -109,7 +122,7 @@ func Defaults() Config {
 		Listen:  Listen{Data: "127.0.0.1:8080", Admin: "127.0.0.1:9090"},
 		Limits: Limits{
 			HeaderBytes: 32 << 10, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 120 * time.Second,
-			BodyBytes: 8 << 20, WriteDeadline: 10 * time.Second, DrainTimeout: 30 * time.Second,
+			BodyBytes: 8 << 20, ResponseBytes: 16 << 20, DecompressRatio: 20, WriteDeadline: 10 * time.Second, DrainTimeout: 30 * time.Second,
 			GlobalInflight: 60000,
 		},
 	}
@@ -258,6 +271,8 @@ func (c *Config) validate(root *yaml.Node) Errors {
 	pos("read_header_timeout", l.ReadHeaderTimeout > 0)
 	pos("idle_timeout", l.IdleTimeout > 0)
 	pos("body_bytes", l.BodyBytes > 0)
+	pos("response_bytes", l.ResponseBytes > 0)
+	pos("decompress_ratio", l.DecompressRatio > 0)
 	pos("write_deadline", l.WriteDeadline > 0)
 	pos("drain_timeout", l.DrainTimeout > 0)
 	pos("global_inflight", l.GlobalInflight > 0)
@@ -284,6 +299,20 @@ func (c *Config) validate(root *yaml.Node) Errors {
 		}
 		if u.Timeout < 0 {
 			add("upstreams."+n+".timeout", "must be >= 0", "upstreams", n, "timeout")
+		}
+		if u.Retries < 0 || u.Retries > 3 {
+			add("upstreams."+n+".retries", "must be 0-3", "upstreams", n, "retries")
+		}
+		if u.H2C && !strings.HasPrefix(u.URL, "http://") {
+			add("upstreams."+n+".h2c", "h2c requires an http:// URL (https negotiates h2 via ALPN)", "upstreams", n, "h2c")
+		}
+	}
+	for i, r := range c.Routes {
+		if r.Model == "" {
+			add(fmt.Sprintf("routes[%d].model", i), "must be set", "routes", i, "model")
+		}
+		if _, ok := c.Upstreams[r.Upstream]; !ok {
+			add(fmt.Sprintf("routes[%d].upstream", i), fmt.Sprintf("unknown upstream %q", r.Upstream), "routes", i, "upstream")
 		}
 	}
 	seen := map[string]bool{}

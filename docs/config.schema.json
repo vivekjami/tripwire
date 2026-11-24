@@ -79,6 +79,9 @@
         "body_bytes": {
           "type": "integer"
         },
+        "decompress_ratio": {
+          "type": "integer"
+        },
         "drain_timeout": {
           "description": "Go duration, e.g. 5s",
           "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
@@ -102,6 +105,9 @@
           "description": "Go duration, e.g. 5s",
           "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
           "type": "string"
+        },
+        "response_bytes": {
+          "type": "integer"
         },
         "write_deadline": {
           "description": "Go duration, e.g. 5s",
@@ -138,6 +144,21 @@
       },
       "type": "object"
     },
+    "routes": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "upstream": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
     "runtime": {
       "additionalProperties": false,
       "properties": {
@@ -156,6 +177,12 @@
         "properties": {
           "credential_file": {
             "type": "string"
+          },
+          "h2c": {
+            "type": "boolean"
+          },
+          "retries": {
+            "type": "integer"
           },
           "timeout": {
             "description": "Go duration, e.g. 5s",
