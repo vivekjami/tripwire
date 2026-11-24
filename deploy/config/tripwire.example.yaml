@@ -1,0 +1,38 @@
+# Tripwire gateway configuration, schema v0.9 (strict: unknown fields are errors).
+# Generate editor support with:  tripwire -print-schema > config.schema.json
+version: "0.9"
+
+listen:
+  data: "0.0.0.0:8080"
+  admin: "127.0.0.1:9090"      # /metrics, /debug/pprof, /healthz, /readyz: never on the data port
+  h2c: false                   # cleartext HTTP/2 (prior knowledge); with TLS, h2 is negotiated via ALPN
+  # tls: {cert_file: /etc/tripwire/tls.crt, key_file: /etc/tripwire/tls.key}   # hot-reloaded
+
+limits:                        # values shown are the defaults (ARCHITECTURE §14.2)
+  header_bytes: 32768
+  read_header_timeout: 5s
+  idle_timeout: 120s
+  body_bytes: 8388608
+  write_deadline: 10s
+  drain_timeout: 30s
+  global_inflight: 60000       # excess requests get 429 + Retry-After
+
+runtime:
+  gomaxprocs: 0                # 0 = runtime default; set to the gateway cpuset size on the rig
+  mem_limit: ""                # e.g. 6GiB
+
+upstreams:
+  openai:
+    url: https://api.openai.com
+    credential_file: /run/secrets/openai_key    # the gateway injects this; agents never hold it
+
+auth:
+  pepper_file: /run/secrets/tripwire_pepper
+  api_keys:                    # mint with: tripwire genkey -agent billing-bot -pepper-file ...
+    - {agent: billing-bot, sha256: "0000000000000000000000000000000000000000000000000000000000000000"}
+
+agents:
+  - id: billing-bot
+    tenant: acme
+    models: ["gpt-4*"]
+    limits: {rps: 50, burst: 100, concurrent_streams: 10, max_body: 1048576}

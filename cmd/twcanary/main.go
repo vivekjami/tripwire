@@ -27,6 +27,9 @@ func main() {
 	write := flag.Bool("write", false, "store this measurement as the baseline")
 	flag.Parse()
 	r := result{CPUNsPerOp: cpu(), LoopbackRTTUS: rtt()}
+	if sink == 1 { // keeps the accumulator observably used
+		fmt.Fprintln(os.Stderr, "twcanary: sink")
+	}
 	out, _ := json.MarshalIndent(r, "", "  ")
 	fmt.Println(string(out))
 	if *write {
@@ -68,7 +71,7 @@ func cpu() float64 {
 			x ^= x >> 7
 			x ^= x << 17
 		}
-		sink += x
+		sink += x // defeat dead-code elimination of the loop
 		if v := float64(time.Since(t).Nanoseconds()) / n; v < best {
 			best = v
 		}

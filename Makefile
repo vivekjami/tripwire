@@ -102,6 +102,10 @@ rig-local: ## full Phase 0 session on the SYNTHETIC single-host rig (~20 min; sh
 rig-local-analyze: ## tables + capacity fit for session S=<name> -> bench/sessions/<S>/analysis.md
 	scripts/rig-local-analyze.sh $(S)
 
+.PHONY: schema
+schema: ## regenerate docs/config.schema.json from the config structs
+	$(GO) run ./cmd/tripwire -print-schema > docs/config.schema.json
+
 .PHONY: clean
 clean:
 	rm -rf $(BIN) .bench-quick .bench-micro.txt

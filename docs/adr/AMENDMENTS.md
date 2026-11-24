@@ -65,3 +65,12 @@ Decision (provisional): (1) **downstream HTTP/1.1 keep-alive with many connectio
 ### AMD-014: R1 decision (PROVISIONAL): plan for a larger gateway VM
 Capacity fit on the 8 unsaturated null-proxy runs (3 rates × 2 event counts, `R² = 0.996`): `c_r ≈ 436 µs`, `c_e ≈ 15.5 µs` CPU per event: ~4× the plan's `c_e ≈ 4 µs` [hypothesis]. Extrapolated to 20 K req/s × 64 events (1.28 M events/s) that is **≈ 28 busy cores for the pass-through floor alone**. The null proxy's useful ceiling on the pinned gateway cores was ≈ 1.2 cores (knee between 250 and 500 req/s at 64 events): above it latency explodes (p50 event delay 9 ms at 1000 req/s) and CPU stops scaling.
 Decision (option (b) of R1): **budget for a gateway VM of ≥ 32 vCPU (bare-metal-class cores, not shared)**, keep upstream-h2c and a coalescing window as levers, and **publish the knee if 20 K is unreachable**. Treat the per-event constant as an upper bound: this host is virtualised with expensive syscalls and a ~1 ms timer overshoot. **First task of any real rig session: re-fit and confirm or reverse this decision before Phase 5 sizing.**
+
+## Phase 1
+
+### AMD-015: agent ids are `[a-z0-9-]`, API keys are `tw_<agent>_<43 chars>`, auth is Bearer-only at the edge for now
+The key format puts the agent id before the first `_`, so agent ids may not contain `_` (enforced by config validation). Duplicate `Authorization` headers are rejected as ambiguous. The edge currently authenticates API keys only; JWT/JWKS and mTLS (ARCHITECTURE §8.1) are WP1.2 work still open. Rate limiting is GCRA (one atomic per agent) rather than a mutex-guarded bucket, which admits `burst + 1` back-to-back requests (tested).
+**Revisit when:** JWT lands (the agent id will then come from a claim, but API keys keep this format).
+
+### AMD-016: the admin plane has no mTLS or RBAC yet
+`listen.admin` is a separate listener (loopback by default) serving `/metrics`, pprof and health, but without the mTLS/RBAC ARCHITECTURE §14.1 requires for the full admin plane (policy upload, approvals, reload). Only read-only endpoints exist, so loopback binding is the control for now. **Do not bind the admin listener to a non-loopback address until this is done.**

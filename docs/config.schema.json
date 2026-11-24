@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "agents": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "limits": {
+            "additionalProperties": false,
+            "properties": {
+              "burst": {
+                "type": "integer"
+              },
+              "concurrent_streams": {
+                "type": "integer"
+              },
+              "max_body": {
+                "type": "integer"
+              },
+              "rps": {
+                "type": "number"
+              }
+            },
+            "type": "object"
+          },
+          "models": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "tenant": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "array"
+    },
+    "auth": {
+      "additionalProperties": false,
+      "properties": {
+        "api_keys": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "agent": {
+                "type": "string"
+              },
+              "not_after": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "not_before": {
+                "format": "date-time",
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "pepper_file": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "limits": {
+      "additionalProperties": false,
+      "properties": {
+        "body_bytes": {
+          "type": "integer"
+        },
+        "drain_timeout": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
+        },
+        "global_inflight": {
+          "type": "integer"
+        },
+        "header_bytes": {
+          "type": "integer"
+        },
+        "idle_timeout": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
+        },
+        "max_connections": {
+          "type": "integer"
+        },
+        "read_header_timeout": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
+        },
+        "write_deadline": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "listen": {
+      "additionalProperties": false,
+      "properties": {
+        "admin": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "h2c": {
+          "type": "boolean"
+        },
+        "tls": {
+          "additionalProperties": false,
+          "properties": {
+            "cert_file": {
+              "type": "string"
+            },
+            "key_file": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        }
+      },
+      "type": "object"
+    },
+    "runtime": {
+      "additionalProperties": false,
+      "properties": {
+        "gomaxprocs": {
+          "type": "integer"
+        },
+        "mem_limit": {
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "upstreams": {
+      "additionalProperties": {
+        "additionalProperties": false,
+        "properties": {
+          "credential_file": {
+            "type": "string"
+          },
+          "timeout": {
+            "description": "Go duration, e.g. 5s",
+            "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "type": "object"
+    },
+    "version": {
+      "type": "string"
+    }
+  },
+  "title": "Tripwire gateway configuration v0.9",
+  "type": "object"
+}
