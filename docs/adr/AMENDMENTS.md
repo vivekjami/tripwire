@@ -83,3 +83,25 @@ Obsolete line folding and bare-LF line endings are accepted by Go's parser, dete
 
 ### AMD-018: strict JSON also rejects numbers that overflow float64
 Found by the differential fuzz target in the first minute (`1e1000`): valid JSON grammar, but Go's decoder errors while other parsers produce infinity or a bignum. The scanner rejects it (`number out of range`). Lone surrogate escapes are also rejected in the non-stream scanner; the streaming scanner (WP1.5) must instead *resume* split pairs across events.
+
+### AMD-019: JWT identity only; the algorithm allow-list is configuration; verification results are cached at most 5 minutes
+A token proves *who* the caller is; scopes come from the registry (an agent id that is not in the registry is rejected). The allowed algorithms (EdDSA, ES256, RS256) come from config, not from the token, and the key's type must equal the algorithm, so `none`, every HMAC algorithm and key-type confusion are unrepresentable. RSA keys under 2048 bits are ignored. A verified token is cached by SHA-256 until `exp`, **capped at 5 minutes**, so a key removed from the JWKS stops working within 5 minutes even for long-lived tokens (tested). JWKS refresh is rate-limited (`min_refresh`) and serves stale keys for up to `stale_max` when the IdP is down, then fails closed. Pre-signature failures run a dummy Ed25519 verification so timing does not show how far a token got (measured medians within 1.6× across six failure classes; `TestJWTFailureTimingIsUniform`).
+**Revisit when:** a deployment needs revocation faster than 5 minutes (add a deny-list keyed by `jti`).
+
+### AMD-020: lineage is best-effort in Phase 1: ring-full drops are counted; no WAL spill yet
+`Emit` never blocks the request path; a full ring drops and counts (`tw_lineage_dropped_total`); a batch the sink rejects after retries is counted as failed (`tw_lineage_failed_total`). The audit-critical group-commit WAL and spill-to-disk of ARCHITECTURE §10.7 are Phase 4 work (they matter once `block`/`approval` decisions exist). `TestStuckLineageSinkNeverBlocksRequests` proves a wedged sink cannot slow requests.
+
+### AMD-021: `holdback_p99_us` holds the per-request MAXIMUM hold in Phase 1
+The ledger column is named for a per-request p99 of event hold times; computing it needs a per-request histogram, which is a Phase 2 concern (holds only become interesting once detectors hold text back). Until then the column carries the maximum observed gateway hold for that request, an upper bound on the p99. The column name and type are unchanged, so no migration is needed later.
+
+### AMD-022: the streaming scanner misses the 500 MB/s hypothesis on this host
+`BenchmarkJSONScanDelta` (a 170-byte chat chunk, strict validation, duplicate-key tracking, delta location) runs at ≈ 300 MB/s with 0 allocations/op on the WSL2 development host (ARCHITECTURE §12.6 hypothesis: ≥ 500 MB/s). Profiling after the first optimisations (232 → 308 MB/s) shows the cost is spread over per-token work (key bookkeeping, string scanning) rather than one hot spot, and 0.5 µs per event is ≈ 0.5 % of the 10 ms budget. Not optimised further in Phase 1; to be re-measured on a real rig before it is called a miss or a pass.
+**Revisit when:** Phase 2 per-event profiling shows scan time dominating the inspection budget.
+
+### AMD-023: metric names are frozen (docs/metrics.md) and enforced by a test
+`TestMetricNamesAreTheFrozenContract` fails if an exported `tw_*` family is missing, has a different type, is not documented, is documented but not exported, or if any metric carries an `agent`, `tenant`, `path`, `model`, `key` or `token` label. Per-agent numbers belong in the lineage ledger, not in metric labels (cardinality, ARCHITECTURE §8.4).
+
+### AMD-024: the streaming loop coalesces already-received events; write deadlines are re-armed lazily; counters are batched
+Profiling the gateway against the null proxy at the same load attributed the extra CPU to syscalls: the null proxy writes once per upstream *read*, the gateway wrote once per *event*. The loop now writes every event already buffered and flushes once when `Decoder.HasEvent()` says no complete event remains (so no event ever waits for data that has not arrived; `FuzzHasEvent` proves `HasEvent` agrees with `Next`). The per-event timing histogram observes each event's true hold (fully received → flushed). The write deadline is re-armed only when less than half remains (a stalled write is cut off between `write_deadline/2` and `write_deadline`), and event/byte counters are added every 64 events.
+**Effect (shape-only):** CPU vs the null proxy ×1.18 → ×1.10-1.13. **Cost:** at most 64 events share one flush; the deadline semantics above.
+**Revisit when:** a deployment needs a hard per-write deadline (then arm per write).

@@ -1,0 +1,43 @@
+{
+  "RunID": "p1-synth-20261124-fine-sweep-null-L200-r3",
+  "OutDir": "~/tripwire/bench/results/p1-synth-20261124-fine-sweep-null-L200-r3",
+  "Target": "http://127.0.0.1:9302",
+  "Mode": "http",
+  "H2C": false,
+  "TLSCA": "",
+  "H2TLS": false,
+  "Bearer": "",
+  "Rate": 200,
+  "Duration": 15000000000,
+  "Warmup": 3000000000,
+  "Arrivals": null,
+  "Seed": 1,
+  "SpinMargin": 1500000,
+  "MaxInflight": 200000,
+  "RequestTimeout": 60000000000,
+  "DrainTimeout": 30000000000,
+  "Surface": "chat",
+  "StreamFrac": 1,
+  "Events": 64,
+  "Gap": "const:5ms",
+  "Chunk": "token",
+  "Inject": [
+    {
+      "class": "PCI.PAN",
+      "count": 1
+    }
+  ],
+  "InjectFrac": 0.2,
+  "Fault": null,
+  "FaultFrac": 0,
+  "MCPVersion": "2025-11-25",
+  "MCPTool": "get_customer",
+  "MCPMismatchFrac": 0,
+  "IdleConns": 0,
+  "GTLog": "~/tripwire/.rig-local/work/gt.jsonl",
+  "EmitLog": "~/tripwire/.rig-local/work/emit.csv",
+  "EmitSample": 0.05,
+  "CheckSample": 0.05,
+  "SUTMetrics": "http://127.0.0.1:9303/metrics",
+  "MockStats": "http://127.0.0.1:9300/_tw/stats"
+}

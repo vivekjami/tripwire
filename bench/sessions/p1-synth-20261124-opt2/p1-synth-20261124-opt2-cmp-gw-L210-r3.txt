@@ -1,0 +1,12 @@
+run p1-synth-20261124-opt2-cmp-gw-L210-r3  mode=http surface=chat target=http://127.0.0.1:9310
+  offered 210/s -> achieved 207/s over 15.0s  (completed 3102 of 3102 offered, abandoned 0)
+  events 358960 (23933/s)   generator CPU 28%   SUT CPU 11.45 core-s (0.76 cores)
+  request_total          n=3102      p50=566.27ms  p99=623.10ms  p99.9=642.56ms  max=647.17ms
+  time_to_headers        n=3102      p50=1.04ms    p99=3.04ms    p99.9=5.33ms    max=8.07ms
+  time_to_first_event    n=3102      p50=1.05ms    p99=3.04ms    p99.9=5.34ms    max=8.07ms
+  event_delay            n=15464     p50=261µs     p99=1.14ms    p99.9=2.79ms    max=9.83ms
+  dispatch_lag (gen)     n=3102      p50=55µs      p99=721µs     p99.9=1.59ms    max=4.26ms
+  ground truth: checked=149 with_injection=27 spans=27 LEAKED=27 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=542µs p99=1.25ms max=8.32ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p1-synth-20261124-opt2-cmp-gw-L210-r3
+RUN INVALID: dispatch lag p99 721 µs > 200 µs (generator jitter)

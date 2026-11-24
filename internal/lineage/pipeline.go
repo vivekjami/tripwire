@@ -113,6 +113,9 @@ func (p *Pipeline) Emit(e *Event) bool {
 	return true
 }
 
+// Depth is the number of events waiting in the ring.
+func (p *Pipeline) Depth() int { return p.ring.Len() }
+
 // Stats returns a snapshot.
 func (p *Pipeline) Stats() Stats {
 	return Stats{p.emitted.Load(), p.dropped.Load(), p.committed.Load(), p.failed.Load(), p.batches.Load()}

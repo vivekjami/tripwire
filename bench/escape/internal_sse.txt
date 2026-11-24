@@ -1,0 +1,4 @@
+internal/sse/sse.go: append escapes to heap
+internal/sse/sse.go: &Decoder{...} escapes to heap
+internal/sse/sse.go: make([]byte, 16384) escapes to heap
+internal/sse/sse.go: make([]byte, grow) escapes to heap

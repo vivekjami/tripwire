@@ -1,0 +1,1 @@
+local rig up: GEN_CORES=0-2 MOCK_CORES=3-4 GW_CORES=5-6 

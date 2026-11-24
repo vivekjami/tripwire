@@ -163,6 +163,51 @@ func (d *Decoder) Next() (Event, error) {
 	}
 }
 
+// fillOnce reads once and reports whether more data may follow (test helper).
+func (d *Decoder) fillOnce() bool {
+	if d.eof != nil {
+		return false
+	}
+	return d.fill() == nil
+}
+
+// HasEvent reports whether a complete event is already buffered, i.e. whether
+// the next call to Next will return without reading from the source. It never
+// blocks and consumes nothing; the gateway uses it to flush once per burst of
+// already-received events instead of once per event.
+func (d *Decoder) HasEvent() bool {
+	if !d.bom { // before the first bytes are classified; Next will settle it
+		return false
+	}
+	blockStart, lineStart := d.start, d.start
+	for i := d.start; i < d.end; i++ {
+		c := d.buf[i]
+		if c != '\n' && c != '\r' {
+			continue
+		}
+		next := i + 1
+		if c == '\r' {
+			if next >= d.end && d.eof == nil {
+				return false // a trailing CR needs one more byte to know whether it is CRLF
+			}
+			if next < d.end && d.buf[next] == '\n' {
+				next++
+			}
+		}
+		if i == lineStart { // blank line
+			if lineStart == blockStart { // stray blank line before any content: Next skips it
+				blockStart, lineStart = next, next
+				i = next - 1
+				continue
+			}
+			return true
+		}
+		lineStart = next
+		i = next - 1
+	}
+	return false
+}
+
 // emit parses the block buf[start:end) and consumes it.
 func (d *Decoder) emit(end int) Event {
 	raw := d.buf[d.start:end]

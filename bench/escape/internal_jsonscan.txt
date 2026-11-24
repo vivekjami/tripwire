@@ -1,0 +1,10 @@
+internal/jsonscan/jsonscan.go: append escapes to heap
+internal/jsonscan/jsonscan.go: e.Msg escapes to heap
+internal/jsonscan/jsonscan.go: e.Offset escapes to heap
+internal/jsonscan/jsonscan.go: &Error{...} escapes to heap
+internal/jsonscan/jsonscan.go: make(map[string]struct {}, 128) escapes to heap
+internal/jsonscan/jsonscan.go: string(decodeInto(nil, raw)) escapes to heap
+internal/jsonscan/jsonscan.go: string(kb) escapes to heap
+internal/jsonscan/jsonscan.go: string(~r0) escapes to heap
+internal/jsonscan/jsonscan.go: string(raw) escapes to heap
+internal/jsonscan/unescape.go: append escapes to heap

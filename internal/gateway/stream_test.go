@@ -391,3 +391,80 @@ func TestNoGoroutineOrFDLeakAfterChurn(t *testing.T) {
 		t.Fatal("unreachable")
 	}
 }
+
+// HTTP/2 stress (IMPLEMENTATION_PLAN Phase 1 risk table): many concurrent
+// streams multiplexed over a few h2c connections must all complete, in order,
+// with no stream starved.
+func TestH2ManyConcurrentStreams(t *testing.T) {
+	if testing.Short() {
+		t.Skip("stress")
+	}
+	const streams, conns, events = 400, 4, 40
+	pieces := make([]string, 0, events+1)
+	for i := 0; i < events; i++ {
+		pieces = append(pieces, "data: "+chunkJSON(i, fmt.Sprintf("t%02d ", i))+"\n\n")
+	}
+	pieces = append(pieces, "data: [DONE]\n\n")
+	r, _ := startAPI(t, sseUpstream(pieces, 3*time.Millisecond, nil), func(c *config.Config) {
+		c.Listen.H2C = true
+		c.Limits.GlobalInflight = 100000
+	})
+	var clients []*http.Client
+	for i := 0; i < conns; i++ {
+		p := new(http.Protocols)
+		p.SetUnencryptedHTTP2(true)
+		clients = append(clients, &http.Client{Transport: &http.Transport{Protocols: p, MaxConnsPerHost: 1, HTTP2: &http.HTTP2Config{MaxConcurrentStreams: 1000}}})
+	}
+	var wg sync.WaitGroup
+	var bad, worstGapMS atomic.Int64
+	start := time.Now()
+	for i := 0; i < streams; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			req, _ := http.NewRequest("POST", r.dataURL+"/v1/chat/completions", strings.NewReader(streamReq))
+			req.Header.Set("Authorization", "Bearer "+r.key)
+			req.Header.Set("Content-Type", "application/json")
+			resp, err := clients[i%conns].Do(req)
+			if err != nil || resp.StatusCode != 200 || resp.ProtoMajor != 2 {
+				bad.Add(1)
+				return
+			}
+			defer resp.Body.Close()
+			br := bufio.NewReader(resp.Body)
+			last, next := time.Now(), 0
+			for {
+				line, err := br.ReadString('\n')
+				if err != nil {
+					bad.Add(1)
+					return
+				}
+				if strings.HasPrefix(line, "data: [DONE]") {
+					break
+				}
+				if strings.HasPrefix(line, "data: {") {
+					if !strings.Contains(line, fmt.Sprintf("t%02d ", next)) { // order preserved
+						bad.Add(1)
+						return
+					}
+					next++
+					if g := time.Since(last).Milliseconds(); g > worstGapMS.Load() {
+						worstGapMS.Store(g)
+					}
+					last = time.Now()
+				}
+			}
+			if next != events {
+				bad.Add(1)
+			}
+		}(i)
+	}
+	wg.Wait()
+	t.Logf("%d streams over %d h2c connections in %v; worst inter-event gap seen by a client: %dms (upstream gap 3ms)", streams, conns, time.Since(start).Round(time.Millisecond), worstGapMS.Load())
+	if bad.Load() != 0 {
+		t.Fatalf("%d of %d streams failed, were reordered or lost events", bad.Load(), streams)
+	}
+	if worstGapMS.Load() > 1500 {
+		t.Fatalf("a stream was starved for %dms under h2 multiplexing", worstGapMS.Load())
+	}
+}

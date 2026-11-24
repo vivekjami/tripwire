@@ -1,0 +1,29 @@
+{
+  "achieved_events_per_s": 999888.5376034043,
+  "batches": 150,
+  "committed": 14999710,
+  "committed_events_per_s": 999888.5376034043,
+  "config": {
+    "batch_rows": 100000,
+    "compression": "lz4",
+    "flush": "750ms",
+    "producers": 4,
+    "writers": 2
+  },
+  "dropped": 0,
+  "duration_s": 15.00138209,
+  "emitted": 14999710,
+  "enqueue_p50_ns": 200,
+  "enqueue_p999_ns": 831,
+  "enqueue_p99_ns": 450,
+  "failed": 0,
+  "gomaxprocs": 8,
+  "loss_free": true,
+  "mode": "lineage",
+  "process_cpu_seconds": 62.904855999999995,
+  "ring_max_depth": 3578,
+  "ring_slots": 262144,
+  "run_id": "p1-lineage-null-1M",
+  "sink": "null",
+  "target_events_per_s": 1000000
+}

@@ -1,0 +1,12 @@
+run p1-synth-20261124-cmp-null-L300-r5  mode=http surface=chat target=http://127.0.0.1:9302
+  offered 300/s -> achieved 303/s over 15.0s  (completed 4542 of 4542 offered, abandoned 0)
+  events 525633 (35044/s)   generator CPU 38%   SUT CPU 14.80 core-s (0.99 cores)
+  request_total          n=4542      p50=566.27ms  p99=626.69ms  p99.9=646.65ms  max=667.13ms
+  time_to_headers        n=4542      p50=1.14ms    p99=6.30ms    p99.9=21.52ms   max=32.96ms
+  time_to_first_event    n=4542      p50=1.15ms    p99=6.35ms    p99.9=21.54ms   max=32.96ms
+  event_delay            n=24819     p50=325µs     p99=2.82ms    p99.9=11.16ms   max=22.77ms
+  dispatch_lag (gen)     n=4542      p50=61µs      p99=1.03ms    p99.9=4.29ms    max=11.28ms
+  ground truth: checked=241 with_injection=50 spans=50 LEAKED=50 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=537µs p99=1.32ms max=6.87ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p1-synth-20261124-cmp-null-L300-r5
+RUN INVALID: dispatch lag p99 1030 µs > 200 µs (generator jitter)

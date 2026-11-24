@@ -73,10 +73,16 @@ func main() {
 	metric := flag.String("metric", "event_delay", "request_total | time_to_headers | time_to_first_event | event_delay | dispatch_lag")
 	md := flag.String("md", "", "write a markdown table here")
 	js := flag.String("json", "", "write rows as JSON here")
+	knee := flag.Bool("knee", false, "treat the runs as a load sweep (names end -L<rate>-r<N>) and print the knee: the highest offered rate (req/s) at which every rate up to it is healthy")
+	kneeP99 := flag.Int64("knee-p99-us", 5000, "healthy means merged event_delay p99 at or below this (µs)")
+	kneeMin := flag.Float64("knee-achieved", 0.98, "...and achieved/offered at or above this")
 	flag.Parse()
 	if flag.NArg() == 0 {
 		fmt.Fprintln(os.Stderr, "usage: twagg [flags] RUN_DIR...")
 		os.Exit(2)
+	}
+	if *knee {
+		os.Exit(findKnee(flag.Args(), *kneeP99, *kneeMin))
 	}
 	groups := map[string][]string{}
 	for _, d := range flag.Args() {
@@ -180,4 +186,54 @@ func meanCI(x []float64) (mean, half float64) {
 		t = tCrit95[n-1]
 	}
 	return mean, t * sd / math.Sqrt(float64(n))
+}
+
+var rateRE = regexp.MustCompile(`-L(\d+)(?:-r\d+)?$`)
+
+// findKnee prints a per-rate health table to stderr and the knee (a single
+// integer) to stdout. A rate is healthy when its merged event_delay p99 is at
+// most maxP99 µs and it achieved at least minAchieved of the offered rate; the
+// knee is the highest rate below the first unhealthy one.
+func findKnee(dirs []string, maxP99 int64, minAchieved float64) int {
+	byRate := map[int][]string{}
+	for _, d := range dirs {
+		m := rateRE.FindStringSubmatch(filepath.Base(filepath.Clean(d)))
+		if m == nil {
+			continue
+		}
+		var r int
+		fmt.Sscanf(m[1], "%d", &r)
+		byRate[r] = append(byRate[r], d)
+	}
+	rates := make([]int, 0, len(byRate))
+	for r := range byRate {
+		rates = append(rates, r)
+	}
+	sort.Ints(rates)
+	knee := 0
+	broken := false
+	fmt.Fprintf(os.Stderr, "%8s %6s %12s %10s %8s\n", "req/s", "runs", "ev p99 (µs)", "achieved", "healthy")
+	for _, r := range rates {
+		row, err := aggregate(fmt.Sprintf("L%d", r), "event_delay", byRate[r])
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "twagg:", err)
+			return 1
+		}
+		ach := 0.0
+		if row.OfferedRPS > 0 {
+			ach = row.AchievedRPS / row.OfferedRPS
+		}
+		ok := row.P99 <= maxP99 && ach >= minAchieved
+		fmt.Fprintf(os.Stderr, "%8d %6d %12d %9.1f%% %8v\n", r, row.Runs, row.P99, 100*ach, ok)
+		if ok && !broken {
+			knee = r
+		} else {
+			broken = true
+		}
+	}
+	if knee == 0 {
+		return 2
+	}
+	fmt.Println(knee)
+	return 0
 }

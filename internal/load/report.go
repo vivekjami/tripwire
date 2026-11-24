@@ -269,6 +269,7 @@ func (r *Runner) writeResults(s *Summary) error {
 	}
 	cfg := r.cfg
 	cfg.Arrivals = nil
+	cfg.Bearer = "" // results are committed and may be public: a credential is never written
 	cfg.OutDir = envinfo.ScrubHome(cfg.OutDir)
 	cfg.GTLog = envinfo.ScrubHome(cfg.GTLog)
 	cfg.EmitLog = envinfo.ScrubHome(cfg.EmitLog)

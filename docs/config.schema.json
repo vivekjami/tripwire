@@ -6,6 +6,9 @@
       "items": {
         "additionalProperties": false,
         "properties": {
+          "admin": {
+            "type": "boolean"
+          },
           "id": {
             "type": "string"
           },
@@ -200,6 +203,47 @@
       },
       "type": "object"
     },
+    "lineage": {
+      "additionalProperties": false,
+      "properties": {
+        "batch_rows": {
+          "type": "integer"
+        },
+        "clickhouse": {
+          "additionalProperties": false,
+          "properties": {
+            "addr": {
+              "type": "string"
+            },
+            "compression": {
+              "type": "string"
+            },
+            "password_file": {
+              "type": "string"
+            },
+            "user": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "flush_interval": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
+        },
+        "ring_size": {
+          "type": "integer"
+        },
+        "sink": {
+          "type": "string"
+        },
+        "writers": {
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
     "listen": {
       "additionalProperties": false,
       "properties": {
@@ -229,6 +273,9 @@
         }
       },
       "type": "object"
+    },
+    "node_id": {
+      "type": "integer"
     },
     "routes": {
       "items": {

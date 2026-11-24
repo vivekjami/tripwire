@@ -1,0 +1,101 @@
+{
+  "run_id": "p1-synth-20261124-sweep-null-L100-r1",
+  "started_utc": "2026-11-24T06:35:09.559212861Z",
+  "mode": "http",
+  "surface": "chat",
+  "target": "http://127.0.0.1:9302",
+  "offered_rate_per_s": 100,
+  "offered_count": 1472,
+  "completed": 1472,
+  "achieved_rate_per_s": 98.186627352396,
+  "window_seconds": 14.991858257,
+  "abandoned_after_drain": 0,
+  "undispatched": 0,
+  "request_total": {
+    "count": 1472,
+    "min_us": 495616,
+    "p50_us": 565759,
+    "p90_us": 596991,
+    "p99_us": 626687,
+    "p999_us": 641023,
+    "max_us": 641023,
+    "mean_us": 565410.956521739
+  },
+  "time_to_headers": {
+    "count": 1472,
+    "min_us": 395,
+    "p50_us": 654,
+    "p90_us": 882,
+    "p99_us": 1127,
+    "p999_us": 1804,
+    "max_us": 3071,
+    "mean_us": 683.2866847826078
+  },
+  "time_to_first_event": {
+    "count": 1472,
+    "min_us": 398,
+    "p50_us": 658,
+    "p90_us": 889,
+    "p99_us": 1145,
+    "p999_us": 1806,
+    "max_us": 3075,
+    "mean_us": 688.614130434782
+  },
+  "dispatch_lag": {
+    "count": 1472,
+    "min_us": 3,
+    "p50_us": 39,
+    "p90_us": 83,
+    "p99_us": 178,
+    "p999_us": 994,
+    "max_us": 2565,
+    "mean_us": 50.345108695652165
+  },
+  "event_delay": {
+    "count": 10682,
+    "min_us": 20,
+    "p50_us": 154,
+    "p90_us": 249,
+    "p99_us": 388,
+    "p999_us": 615,
+    "max_us": 1615,
+    "mean_us": 165.71681333083703
+  },
+  "events_received": 170502,
+  "events_per_s": 11372.973054917271,
+  "gen_cpu_seconds": 5.209714999999999,
+  "gen_cpu_util": 0.1158343173272617,
+  "sut_cpu_seconds": 4.039999999999999,
+  "ground_truth": {
+    "checked": 86,
+    "with_injection": 18,
+    "spans_total": 18,
+    "spans_leaked": 18,
+    "streams_leaked": 18,
+    "leaks_by_class": {
+      "PCI.PAN": 18
+    },
+    "benign_altered": 0,
+    "parse_errors": 0,
+    "incomplete": 0,
+    "missing_ground_truth": 0
+  },
+  "mock_stats": {
+    "streams_started": 1792,
+    "streams_done": 1792,
+    "streams_active": 0,
+    "events_emitted": 207390,
+    "requests": 1792,
+    "emit_jitter": {
+      "count": 207390,
+      "min_us": 1,
+      "p50_us": 548,
+      "p90_us": 1042,
+      "p99_us": 1194,
+      "p999_us": 1347,
+      "max_us": 5099,
+      "mean_us": 548.9521433048853
+    }
+  },
+  "valid": true
+}

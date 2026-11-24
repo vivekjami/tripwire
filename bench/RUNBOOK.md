@@ -28,3 +28,19 @@ Merge HdrHistograms across runs (never average percentiles); report p50/p99/p99.
 
 ## Synthetic local rig (no cloud needed)
 `make rig-local S=<name>` runs this whole procedure on one host with `deploy/rig/providers/local.sh` (generator / mock / gateway pinned to disjoint cores; throw-away CA for TLS; teardown verifies no processes, no listeners, no state dir). `make rig-local-analyze S=<name>` writes the tables. It validates the *procedure and tooling* and gives the shape of the curves; on a virtualised laptop every run is `valid=false`, so nothing from it is citable. A real rig session replaces it with `make rig-up` + the same analysis script.
+
+## Lineage ingest probe (Phase 1, WP1.6): run this on rig C
+Purpose: find the ceiling and the settings that matter *before* Phase 4 depends on 1 M rows/s.
+1. Start a single ClickHouse node on rig C (record version, `config.xml` deltas and `system.settings` changes in `env.json`).
+2. `twmigrate -addr <C>:9000` creates the `tw` schema (idempotent; applied migrations are checksum-locked).
+3. For rate in 100 K, 250 K, 500 K, 750 K, 1 M ev/s, 5 minutes each:
+   `twload run -mode lineage -sink clickhouse -ch-addr <C>:9000 -rate <rate> -duration 5m -batch-rows 100000 -writers 2 -run-id lineage-<rate>`
+4. After each rate record from `system.parts` (active parts per partition), `system.merges`, `system.asynchronous_metrics` and `system.events` (`InsertedRows`, `DelayedInserts`, `RejectedInserts`) into the run directory. Success = `loss_free: true` and `committed == emitted` in `summary.json` *and* `count()` in `tw.request_events` equal to `committed`.
+5. The output of the phase is **a number (sustainable rows/s) and the list of ClickHouse/pipeline settings that mattered** (block rows, flush interval, writers, `parts_to_throw_insert`, merge pool). If the ceiling is below 1 M rows/s, write the plan (batching, parts, second node, column trimming) before Phase 4.
+The pipeline alone (null sink) is measured with `-sink null`; that isolates the ring and batcher from ClickHouse.
+
+## Compatibility matrix
+`scripts/compat.sh` runs curl, the third-party Go client and (when `TW_PYTHON` / `TW_NODE` + `TW_NODE_MODULES` point at interpreters with the official SDKs installed) the OpenAI Python and TypeScript SDKs against gateway -> twmock, and writes `bench/compat/<date>/matrix.md`.
+
+## Long fuzz
+`scripts/fuzz-long.sh` runs every fuzz target for `FUZZTIME` (default 10 m) and writes `bench/fuzz/<date>/summary.txt`. Phase exit criteria require >= 10 min per parser target with no findings.

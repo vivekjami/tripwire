@@ -44,12 +44,19 @@ func usage() {
 }
 
 func runCmd(args []string) int {
+	for i, a := range args { // `-mode lineage` drives the lineage pipeline, not an HTTP target
+		if (a == "-mode" || a == "--mode") && i+1 < len(args) && args[i+1] == "lineage" {
+			rest := append(append([]string{}, args[:i]...), args[i+2:]...)
+			return lineageProbe(rest)
+		}
+	}
 	fs := flag.NewFlagSet("run", flag.ExitOnError)
 	var (
 		target   = fs.String("target", "http://127.0.0.1:9200", "base URL of the system under test")
 		mode     = fs.String("mode", "http", "http | mcp | connections | lineage")
 		surface  = fs.String("surface", "chat", "chat | responses")
 		h2c      = fs.Bool("h2c", false, "speak h2c to the target")
+		bearerF  = fs.String("bearer-file", "", "file holding a bearer token (API key) to send; the token itself is never printed or stored in results")
 		tlsCA    = fs.String("tls-ca", "", "PEM roots to trust for an https target (certificate verification stays on)")
 		h2tls    = fs.Bool("h2", false, "https target: use HTTP/2 via ALPN instead of HTTP/1.1")
 		rate     = fs.Float64("rate", 1000, "mean arrival rate, requests/s (Poisson unless --trace)")
@@ -99,6 +106,13 @@ func runCmd(args []string) int {
 		SUTMetrics: *sut, MockStats: *mockSt,
 	}
 	var err error
+	if *bearerF != "" {
+		b, rerr := os.ReadFile(*bearerF) //nolint:gosec // operator-supplied path
+		if rerr != nil {
+			return fail(rerr)
+		}
+		cfg.Bearer = strings.TrimSpace(string(b))
+	}
 	if cfg.Inject, err = parseInject(*inject); err != nil {
 		return fail(err)
 	}

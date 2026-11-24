@@ -1,0 +1,12 @@
+run p1-synth-20261124-fine-sweep-null-L350-r4  mode=http surface=chat target=http://127.0.0.1:9302
+  offered 350/s -> achieved 353/s over 15.0s  (completed 5297 of 5297 offered, abandoned 0)
+  events 613105 (40876/s)   generator CPU 44%   SUT CPU 17.01 core-s (1.13 cores)
+  request_total          n=5297      p50=566.78ms  p99=626.69ms  p99.9=647.17ms  max=667.13ms
+  time_to_headers        n=5297      p50=1.31ms    p99=10.41ms   p99.9=27.50ms   max=32.54ms
+  time_to_first_event    n=5297      p50=1.32ms    p99=10.42ms   p99.9=27.50ms   max=32.54ms
+  event_delay            n=33656     p50=383µs     p99=5.71ms    p99.9=11.77ms   max=32.80ms
+  dispatch_lag (gen)     n=5297      p50=66µs      p99=1.26ms    p99.9=4.27ms    max=6.67ms
+  ground truth: checked=272 with_injection=51 spans=51 LEAKED=51 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=523µs p99=1.50ms max=7.28ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p1-synth-20261124-fine-sweep-null-L350-r4
+RUN INVALID: dispatch lag p99 1256 µs > 200 µs (generator jitter)

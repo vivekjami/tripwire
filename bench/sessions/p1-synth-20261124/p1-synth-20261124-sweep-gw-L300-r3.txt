@@ -1,0 +1,12 @@
+run p1-synth-20261124-sweep-gw-L300-r3  mode=http surface=chat target=http://127.0.0.1:9310
+  offered 300/s -> achieved 303/s over 15.0s  (completed 4542 of 4542 offered, abandoned 0)
+  events 525633 (35044/s)   generator CPU 41%   SUT CPU 19.14 core-s (1.28 cores)
+  request_total          n=4542      p50=576.00ms  p99=845.82ms  p99.9=909.31ms  max=1.01s
+  time_to_headers        n=4542      p50=2.48ms    p99=336.64ms  p99.9=437.25ms  max=628.22ms
+  time_to_first_event    n=4542      p50=2.48ms    p99=336.64ms  p99.9=437.25ms  max=628.22ms
+  event_delay            n=25043     p50=759µs     p99=151.81ms  p99.9=212.86ms  max=253.44ms
+  dispatch_lag (gen)     n=4542      p50=65µs      p99=21.38ms   p99.9=41.22ms   max=48.41ms
+  ground truth: checked=237 with_injection=49 spans=49 LEAKED=49 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=573µs p99=12.12ms max=57.79ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p1-synth-20261124-sweep-gw-L300-r3
+RUN INVALID: dispatch lag p99 21375 µs > 200 µs (generator jitter)

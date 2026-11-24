@@ -1,0 +1,104 @@
+{
+  "run_id": "p1-synth-20261124-fine-sweep-null-L250-r1",
+  "started_utc": "2026-11-24T07:23:17.590600533Z",
+  "mode": "http",
+  "surface": "chat",
+  "target": "http://127.0.0.1:9302",
+  "offered_rate_per_s": 250,
+  "offered_count": 3755,
+  "completed": 3755,
+  "achieved_rate_per_s": 250.373601420397,
+  "window_seconds": 14.99758752,
+  "abandoned_after_drain": 0,
+  "undispatched": 0,
+  "request_total": {
+    "count": 3755,
+    "min_us": 485888,
+    "p50_us": 566271,
+    "p90_us": 596991,
+    "p99_us": 626687,
+    "p999_us": 642047,
+    "max_us": 657919,
+    "mean_us": 565436.2673768307
+  },
+  "time_to_headers": {
+    "count": 3755,
+    "min_us": 471,
+    "p50_us": 1006,
+    "p90_us": 1630,
+    "p99_us": 3161,
+    "p999_us": 6623,
+    "max_us": 12575,
+    "mean_us": 1137.9110519307599
+  },
+  "time_to_first_event": {
+    "count": 3755,
+    "min_us": 483,
+    "p50_us": 1014,
+    "p90_us": 1645,
+    "p99_us": 3181,
+    "p999_us": 6623,
+    "max_us": 12575,
+    "mean_us": 1147.613581890811
+  },
+  "dispatch_lag": {
+    "count": 3755,
+    "min_us": 5,
+    "p50_us": 57,
+    "p90_us": 167,
+    "p99_us": 655,
+    "p999_us": 1727,
+    "max_us": 3751,
+    "mean_us": 90.34753661784288
+  },
+  "event_delay": {
+    "count": 19414,
+    "min_us": 23,
+    "p50_us": 263,
+    "p90_us": 553,
+    "p99_us": 1259,
+    "p999_us": 3447,
+    "max_us": 9487,
+    "mean_us": 323.0332749562171
+  },
+  "events_received": 434636,
+  "events_per_s": 28980.394308110695,
+  "gen_cpu_seconds": 14.224803999999999,
+  "gen_cpu_util": 0.31615760381529234,
+  "sut_cpu_seconds": 12.010000000000005,
+  "ground_truth": {
+    "checked": 186,
+    "with_injection": 33,
+    "spans_total": 33,
+    "spans_leaked": 33,
+    "streams_leaked": 33,
+    "leaks_by_class": {
+      "PCI.PAN": 33
+    },
+    "benign_altered": 0,
+    "parse_errors": 0,
+    "incomplete": 0,
+    "missing_ground_truth": 0
+  },
+  "mock_stats": {
+    "streams_started": 4510,
+    "streams_done": 4510,
+    "streams_active": 0,
+    "events_emitted": 521935,
+    "requests": 4510,
+    "emit_jitter": {
+      "count": 521935,
+      "min_us": 1,
+      "p50_us": 538,
+      "p90_us": 1070,
+      "p99_us": 1265,
+      "p999_us": 4399,
+      "max_us": 17631,
+      "mean_us": 537.0360600457897
+    }
+  },
+  "valid": false,
+  "invalid_reasons": [
+    "dispatch lag p99 655 µs \u003e 200 µs (generator jitter)"
+  ]
+}

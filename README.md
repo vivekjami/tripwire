@@ -9,7 +9,7 @@
 | **Latency contract** | ≤ 10 ms added at p99 (hard SLO), ≤ 5 ms target at the headline load (single-digit-ms p99), **while streaming** |
 | **Throughput contract** | 20 K requests/s with streaming responses on a 3-VM rig (workload defined in [§6](#6-performance-contract-and-how-it-is-proven)) |
 | **Lineage** | Value-level provenance graph in ClickHouse, 1 M lineage events/s ingest |
-| **Status** | Phase 0 (foundations and measurement harness) complete on a synthetic rig (shape-only; real-rig confirmation pending); gateway not yet implemented. Every `[measured]` below is a placeholder that is filled by `make bench` from raw result files, never by hand. |
+| **Status** | Phase 0 complete on a synthetic rig (shape-only). Phase 1 (core proxy, streaming plumbing, authentication, lineage skeleton) implemented and tested; ClickHouse probe and TypeScript SDK check open; no detectors yet. Every `[measured]` below is a placeholder that is filled by `make bench` from raw result files, never by hand. |
 | **Companion docs** | [ARCHITECTURE.md](docs/ARCHITECTURE.md) · [IMPLEMENTATION_PLAN.md](docs/IMPLEMENTATION_PLAN.md) · (generated per repo) `DESIGN.md`, `BENCHMARKS.md`, `FAILURES.md` |
 
 ---

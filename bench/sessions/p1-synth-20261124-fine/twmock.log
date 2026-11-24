@@ -1,0 +1,114 @@
+{"time":"2026-11-24T07:21:23.760407511Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=532/1776/30271 µs
+{"time":"2026-11-24T07:21:42.95092089Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=529/1753/44255 µs
+{"time":"2026-11-24T07:22:01.901150065Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=541/1241/7147 µs
+{"time":"2026-11-24T07:22:20.757500852Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=545/1252/8135 µs
+{"time":"2026-11-24T07:22:39.590937394Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6339 events=733564 emit-jitter p50/p99/max=531/1508/7555 µs
+{"time":"2026-11-24T07:22:58.538643388Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=523/1503/7279 µs
+{"time":"2026-11-24T07:23:17.486269383Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=538/1265/17631 µs
+{"time":"2026-11-24T07:23:36.417737872Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=543/1241/10423 µs
+{"time":"2026-11-24T07:23:55.253326913Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=544/1264/15255 µs
+{"time":"2026-11-24T07:24:14.109369611Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=536/1409/13327 µs
+{"time":"2026-11-24T07:24:33.020457596Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=543/1238/6247 µs
+{"time":"2026-11-24T07:24:51.848398224Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=543/1305/19919 µs
+{"time":"2026-11-24T07:25:10.784856977Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=540/1264/9415 µs
+{"time":"2026-11-24T07:25:29.711665775Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=544/1235/4319 µs
+{"time":"2026-11-24T07:25:48.541085461Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=541/1258/4667 µs
+{"time":"2026-11-24T07:26:07.465484766Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=588/12639/68799 µs
+{"time":"2026-11-24T07:26:26.384557586Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=577/9503/54719 µs
+{"time":"2026-11-24T07:26:45.364014425Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=606/16815/106367 µs
+{"time":"2026-11-24T07:27:04.413867926Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=549/5267/37151 µs
+{"time":"2026-11-24T07:27:23.535321375Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=539/1696/9687 µs
+{"time":"2026-11-24T07:27:42.472131758Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=537/1449/24687 µs
+{"time":"2026-11-24T07:28:01.398419745Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=540/1352/6235 µs
+{"time":"2026-11-24T07:28:20.252002539Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=531/1701/9383 µs
+{"time":"2026-11-24T07:28:39.262575376Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=544/1476/30751 µs
+{"time":"2026-11-24T07:28:58.224448157Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=536/1442/18719 µs
+{"time":"2026-11-24T07:29:17.161448723Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=542/1275/7667 µs
+{"time":"2026-11-24T07:29:36.045358487Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=536/1393/6847 µs
+{"time":"2026-11-24T07:29:54.99952887Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=516/2249/29167 µs
+{"time":"2026-11-24T07:30:14.0109519Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=578/12519/60831 µs
+{"time":"2026-11-24T07:30:33.106845958Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=523/2465/15663 µs
+{"time":"2026-11-24T07:30:52.105495751Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=548/1301/4975 µs
+{"time":"2026-11-24T07:31:11.052042968Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=545/1399/36607 µs
+{"time":"2026-11-24T07:31:29.940386979Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=539/2647/42719 µs
+{"time":"2026-11-24T07:31:48.868397189Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=543/1299/8951 µs
+{"time":"2026-11-24T07:32:07.765393149Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=533/1684/36671 µs
+{"time":"2026-11-24T07:32:26.714220476Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=542/1307/18671 µs
+{"time":"2026-11-24T07:32:45.674642043Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=540/1314/11663 µs
+{"time":"2026-11-24T07:33:04.605751554Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=536/1432/7523 µs
+{"time":"2026-11-24T07:33:23.547873289Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=544/1268/10215 µs
+{"time":"2026-11-24T07:33:42.382946015Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=545/1273/4511 µs
+{"time":"2026-11-24T07:34:01.233569371Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=540/1325/9991 µs
+{"time":"2026-11-24T07:34:20.19157571Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=538/2871/46495 µs
+{"time":"2026-11-24T07:34:39.191284616Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=653/43711/215551 µs
+{"time":"2026-11-24T07:34:58.302154441Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=556/7715/38207 µs
+{"time":"2026-11-24T07:35:17.244027965Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5441 events=629652 emit-jitter p50/p99/max=538/1444/13663 µs
+{"time":"2026-11-24T07:35:36.183406994Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4510 events=521935 emit-jitter p50/p99/max=541/1337/13047 µs
+{"time":"2026-11-24T07:35:55.139923149Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=534/6067/120575 µs
+{"time":"2026-11-24T07:36:14.213446571Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=534/4315/55007 µs
+{"time":"2026-11-24T07:36:33.192613567Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=542/3117/91071 µs
+{"time":"2026-11-24T07:36:52.125488363Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=536/2013/49215 µs
+{"time":"2026-11-24T07:37:11.10720214Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4033 events=466753 emit-jitter p50/p99/max=546/1704/26751 µs
+{"time":"2026-11-24T07:37:30.02336897Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=4972 events=575404 emit-jitter p50/p99/max=536/1632/22143 µs
+{"time":"2026-11-24T07:37:48.982353777Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=5889 events=681579 emit-jitter p50/p99/max=538/3597/37087 µs
+{"time":"2026-11-24T07:38:07.971678146Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=540/4639/89791 µs
+{"time":"2026-11-24T07:38:26.948403193Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=3591 events=415456 emit-jitter p50/p99/max=543/1254/6819 µs
+{"time":"2026-11-24T07:38:45.802401674Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=6341 events=733801 emit-jitter p50/p99/max=533/2755/69183 µs
+{"time":"2026-11-24T07:39:04.772461606Z","level":"INFO","msg":"listening","component":"twmock","listen":"127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
+twmock: streams=0 events=0 emit-jitter p50/p99/max=0/0/0 µs

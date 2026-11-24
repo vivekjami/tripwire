@@ -9,6 +9,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -329,4 +330,39 @@ func TestTLSClientProtocols(t *testing.T) {
 	if s.Completed != 0 && len(s.Errors) == 0 {
 		t.Fatalf("untrusted cert must fail: completed=%d", s.Completed)
 	}
+}
+
+// The bearer token must authenticate requests but never reach the results directory.
+func TestBearerIsSentButNeverWrittenToResults(t *testing.T) {
+	const token = "tw_secretagent_ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopq"
+	var seen atomic.Value
+	srv := mock.New(mock.Config{DefaultGap: "none", DefaultEvents: 4})
+	h := srv.Handler()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/v1/chat/completions" {
+			seen.Store(r.Header.Get("Authorization"))
+		}
+		h.ServeHTTP(w, r)
+	}))
+	defer ts.Close()
+	out := t.TempDir()
+	run, err := New(Config{Target: ts.URL, Rate: 50, Duration: time.Second, Seed: 1, Events: 4, Gap: "none", StreamFrac: 1, Bearer: token, OutDir: filepath.Join(out, "r")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	run.SetOutDir(filepath.Join(out, "r"))
+	if _, err := run.Run(); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := seen.Load().(string); got != "Bearer "+token {
+		t.Fatalf("Authorization header %q", got)
+	}
+	filepath.Walk(out, func(p string, info os.FileInfo, err error) error {
+		if err == nil && !info.IsDir() {
+			if b, _ := os.ReadFile(p); strings.Contains(string(b), "secretagent") || strings.Contains(string(b), token) {
+				t.Errorf("credential found in results file %s", p)
+			}
+		}
+		return nil
+	})
 }

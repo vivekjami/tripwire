@@ -1,0 +1,103 @@
+{
+  "run_id": "p1-synth-20261124-cmp-direct-L210-r4",
+  "started_utc": "2026-11-24T06:47:27.100711752Z",
+  "mode": "http",
+  "surface": "chat",
+  "target": "http://127.0.0.1:9300",
+  "offered_rate_per_s": 210,
+  "offered_count": 3102,
+  "completed": 3102,
+  "achieved_rate_per_s": 206.82096768894914,
+  "window_seconds": 14.998479287,
+  "abandoned_after_drain": 0,
+  "undispatched": 0,
+  "request_total": {
+    "count": 3102,
+    "min_us": 485376,
+    "p50_us": 565759,
+    "p90_us": 596479,
+    "p99_us": 622079,
+    "p999_us": 641023,
+    "max_us": 646143,
+    "mean_us": 564633.4597034171
+  },
+  "time_to_headers": {
+    "count": 3102,
+    "min_us": 179,
+    "p50_us": 443,
+    "p90_us": 625,
+    "p99_us": 1020,
+    "p999_us": 2229,
+    "max_us": 3037,
+    "mean_us": 470.1234687298521
+  },
+  "time_to_first_event": {
+    "count": 3102,
+    "min_us": 181,
+    "p50_us": 447,
+    "p90_us": 630,
+    "p99_us": 1023,
+    "p999_us": 2239,
+    "max_us": 3039,
+    "mean_us": 474.28755641521576
+  },
+  "dispatch_lag": {
+    "count": 3102,
+    "min_us": 3,
+    "p50_us": 45,
+    "p90_us": 134,
+    "p99_us": 364,
+    "p999_us": 1158,
+    "max_us": 1509,
+    "mean_us": 66.9796905222437
+  },
+  "event_delay": {
+    "count": 20988,
+    "min_us": 4,
+    "p50_us": 64,
+    "p90_us": 145,
+    "p99_us": 244,
+    "p999_us": 488,
+    "max_us": 4539,
+    "mean_us": 76.21960167714882
+  },
+  "events_received": 358960,
+  "events_per_s": 23933.09302437949,
+  "gen_cpu_seconds": 9.161366,
+  "gen_cpu_util": 0.20360655291990512,
+  "ground_truth": {
+    "checked": 131,
+    "with_injection": 34,
+    "spans_total": 34,
+    "spans_leaked": 34,
+    "streams_leaked": 34,
+    "leaks_by_class": {
+      "PCI.PAN": 34
+    },
+    "benign_altered": 0,
+    "parse_errors": 0,
+    "incomplete": 0,
+    "missing_ground_truth": 0
+  },
+  "mock_stats": {
+    "streams_started": 3752,
+    "streams_done": 3752,
+    "streams_active": 0,
+    "events_emitted": 434091,
+    "requests": 3752,
+    "emit_jitter": {
+      "count": 434091,
+      "min_us": 1,
+      "p50_us": 542,
+      "p90_us": 1055,
+      "p99_us": 1223,
+      "p999_us": 1409,
+      "max_us": 4559,
+      "mean_us": 539.7520658110847
+    }
+  },
+  "valid": false,
+  "invalid_reasons": [
+    "dispatch lag p99 364 µs \u003e 200 µs (generator jitter)"
+  ]
+}

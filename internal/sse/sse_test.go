@@ -220,3 +220,34 @@ func BenchmarkDecoder(b *testing.B) {
 		}
 	}
 }
+
+// HasEvent must agree with Next: true exactly when Next can return an event
+// without reading more input.
+type noMoreReads struct{ reads int }
+
+func (r *noMoreReads) Read([]byte) (int, error) { r.reads++; return 0, errors.New("must not read") }
+
+func FuzzHasEvent(f *testing.F) {
+	for _, s := range []string{"data: a\n\n", "data: a\n", "\n\ndata: a\n\n", "data: a\r\n\r\n", "data: a\r\r", "data: a\r", ": c\n\n", "data: a\n\ndata: b", ""} {
+		f.Add([]byte(s), uint8(0))
+	}
+	f.Fuzz(func(t *testing.T, in []byte, cut uint8) {
+		if len(in) > 0 && in[0] == 0xEF { // BOM classification is Next's job; HasEvent is defined after it
+			return
+		}
+		// Deliver a prefix as already-buffered bytes, then fail any further read.
+		n := 0
+		if len(in) > 0 {
+			n = int(cut) % (len(in) + 1)
+		}
+		d := NewDecoder(io.MultiReader(bytes.NewReader(in[:n]), &noMoreReads{}), 1<<20)
+		d.bom = true
+		for d.fillOnce() {
+		}
+		has := d.HasEvent()
+		_, err := d.Next()
+		if has != (err == nil) {
+			t.Fatalf("HasEvent=%v but Next err=%v for %q", has, err, in[:n])
+		}
+	})
+}

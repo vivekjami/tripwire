@@ -371,6 +371,9 @@ func (r *Runner) doHTTP(id string, seq int64, events int) outcome {
 		return outcome{err: "build_request"}
 	}
 	req.Header.Set("Content-Type", "application/json")
+	if c.Bearer != "" {
+		req.Header.Set("Authorization", "Bearer "+c.Bearer)
+	}
 	resp, err := r.client.Do(req)
 	if err != nil {
 		return outcome{err: classifyErr(err)}

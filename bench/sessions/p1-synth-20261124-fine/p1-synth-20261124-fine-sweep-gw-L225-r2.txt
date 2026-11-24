@@ -1,0 +1,12 @@
+run p1-synth-20261124-fine-sweep-gw-L225-r2  mode=http surface=chat target=http://127.0.0.1:9310
+  offered 225/s -> achieved 223/s over 15.0s  (completed 3345 of 3345 offered, abandoned 0)
+  events 387265 (25839/s)   generator CPU 30%   SUT CPU 12.63 core-s (0.84 cores)
+  request_total          n=3345      p50=566.27ms  p99=626.69ms  p99.9=642.56ms  max=657.41ms
+  time_to_headers        n=3345      p50=1.10ms    p99=5.48ms    p99.9=20.08ms   max=27.09ms
+  time_to_first_event    n=3345      p50=1.11ms    p99=5.49ms    p99.9=20.08ms   max=27.09ms
+  event_delay            n=21497     p50=284µs     p99=1.99ms    p99.9=10.52ms   max=16.78ms
+  dispatch_lag (gen)     n=3345      p50=55µs      p99=675µs     p99.9=6.08ms    max=14.13ms
+  ground truth: checked=170 with_injection=34 spans=34 LEAKED=34 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=541µs p99=1.26ms max=4.67ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p1-synth-20261124-fine-sweep-gw-L225-r2
+RUN INVALID: dispatch lag p99 675 µs > 200 µs (generator jitter)

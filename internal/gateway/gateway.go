@@ -103,6 +103,18 @@ func newMetrics(r *prometheus.Registry) *metrics {
 			NativeHistogramBucketFactor: 1.1, NativeHistogramMaxBucketNumber: 100, Buckets: prometheus.ExponentialBuckets(0.0005, 2, 16)}),
 	}
 	r.MustRegister(m.requests, m.inflight, m.shed, m.authFail, m.panics, m.tlsReload, m.regReload, m.regAgents, m.reqDuration)
+	// Create every bounded label value up front so each family always exists in
+	// /metrics: dashboards and alerts must never see a series appear for the first time during an incident.
+	for _, c := range []string{"1xx", "2xx", "3xx", "4xx", "5xx"} {
+		m.requests.WithLabelValues(c)
+	}
+	for _, v := range []string{"global_inflight", "agent_rate", "stream_cap", "framing"} {
+		m.shed.WithLabelValues(v)
+	}
+	for _, v := range []string{"ok", "error"} {
+		m.tlsReload.WithLabelValues(v)
+		m.regReload.WithLabelValues(v)
+	}
 	return m
 }
 

@@ -25,6 +25,7 @@ type Config struct {
 	H2C    bool   // speak HTTP/2 cleartext to Target
 	TLSCA  string // PEM roots to trust for an https Target (verification is never disabled)
 	H2TLS  bool   // https Target: negotiate HTTP/2 via ALPN (default HTTP/1.1 over TLS)
+	Bearer string // sent as "Authorization: Bearer <Bearer>" on every request (never logged or written to results)
 
 	// Arrival process
 	Rate     float64

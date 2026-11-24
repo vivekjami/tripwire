@@ -1,0 +1,12 @@
+run p1-synth-20261124-sweep-null-L100-r2  mode=http surface=chat target=http://127.0.0.1:9302
+  offered 100/s -> achieved 98/s over 15.0s  (completed 1472 of 1472 offered, abandoned 0)
+  events 170502 (11373/s)   generator CPU 12%   SUT CPU 4.10 core-s (0.27 cores)
+  request_total          n=1472      p50=565.76ms  p99=626.69ms  p99.9=641.53ms  max=642.05ms
+  time_to_headers        n=1472      p50=660µs     p99=1.26ms    p99.9=2.54ms    max=3.23ms
+  time_to_first_event    n=1472      p50=666µs     p99=1.30ms    p99.9=2.54ms    max=3.24ms
+  event_delay            n=8252      p50=154µs     p99=415µs     p99.9=666µs     max=3.09ms
+  dispatch_lag (gen)     n=1472      p50=41µs      p99=214µs     p99.9=1.81ms    max=2.66ms
+  ground truth: checked=66 with_injection=13 spans=13 LEAKED=13 altered=0 parse_err=0 incomplete=0
+  mock emit jitter: p50=549µs p99=1.18ms max=2.71ms
+  valid=false  results: /home/vivek/tripwire/bench/results/p1-synth-20261124-sweep-null-L100-r2
+RUN INVALID: dispatch lag p99 214 µs > 200 µs (generator jitter)

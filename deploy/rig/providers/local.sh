@@ -17,7 +17,7 @@ set -euo pipefail
 root="$(cd "$(dirname "$0")/../../.." && pwd)"
 state="$root/.rig-local"
 cmd="${1:-}"
-PORTS=(9300 9302 9303 9304 9305 9306 9307 9308 9309)
+PORTS=(9300 9302 9303 9304 9305 9306 9307 9308 9309 9310 9311)
 PROCS=(twmock twnull twload)
 
 listeners() { # prints "port pid" for rig ports still bound

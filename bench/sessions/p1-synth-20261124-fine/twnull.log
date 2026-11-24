@@ -1,0 +1,1 @@
+{"time":"2026-11-24T07:21:23.865101548Z","level":"INFO","msg":"listening","component":"twnull","listen":"127.0.0.1:9302","upstreams":"http://127.0.0.1:9300","go_version":"go1.26.11","gomaxprocs":2,"nofile":1048576}
