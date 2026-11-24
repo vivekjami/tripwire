@@ -18,6 +18,7 @@ import (
 
 	"github.com/vivekjami/tripwire/internal/auth"
 	"github.com/vivekjami/tripwire/internal/jsonscan"
+	"github.com/vivekjami/tripwire/internal/obs"
 	"github.com/vivekjami/tripwire/internal/openai"
 	"github.com/vivekjami/tripwire/internal/upstream"
 )
@@ -178,6 +179,10 @@ func (a *chatAPI) chat(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
+	st := stateFrom(r.Context())
+	if st != nil {
+		st.bytesIn = uint32(len(body))
+	}
 	req, err := openai.ParseChatRequest(body, a.lim)
 	if err != nil {
 		var ve *openai.ValidationError
@@ -196,6 +201,10 @@ func (a *chatAPI) chat(w http.ResponseWriter, r *http.Request) {
 	if err := openai.WalkRequest(req, a.walker); err != nil { // Phase 1: never errors
 		writeErr(w, http.StatusBadRequest, "invalid_request_error", "blocked", "request blocked by policy")
 		return
+	}
+	if st != nil {
+		st.stream = req.Stream
+		st.timer.Mark(obs.StageScan)
 	}
 	if req.Stream {
 		a.stream(w, r, ag, up, req)
@@ -220,6 +229,7 @@ func (a *chatAPI) forwardJSON(w http.ResponseWriter, r *http.Request, up *upstre
 		return
 	}
 	defer resp.Body.Close()
+	stateFrom(r.Context()).markUpstream() // headers received
 	a.relayBounded(w, ctx, up, resp, start)
 }
 
@@ -260,6 +270,8 @@ func (a *chatAPI) relayBounded(w http.ResponseWriter, ctx context.Context, up *u
 		writeErr(w, http.StatusBadGateway, "server_error", "bad_upstream_response", "upstream returned a malformed error")
 		return
 	}
+	stateFrom(ctx).markUpstream()
+	setServerTiming(w, stateFrom(ctx))
 	writeJSONBytes(w, resp.StatusCode, raw, resp.Header.Get("Retry-After"))
 }
 

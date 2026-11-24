@@ -29,6 +29,8 @@ type Config struct {
 	Runtime   Runtime             `yaml:"runtime"`
 	Upstreams map[string]Upstream `yaml:"upstreams"`
 	Routes    []Route             `yaml:"routes"`
+	Lineage   Lineage             `yaml:"lineage"`
+	NodeID    int                 `yaml:"node_id"` // 0-1023: the node bits of event ids
 	Auth      Auth                `yaml:"auth"`
 	Agents    []Agent             `yaml:"agents"`
 }
@@ -43,8 +45,9 @@ type Listen struct {
 
 // TLS configures server certificates (hot-reloaded) for a listener.
 type TLS struct {
-	CertFile string `yaml:"cert_file"`
-	KeyFile  string `yaml:"key_file"`
+	CertFile     string `yaml:"cert_file"`
+	KeyFile      string `yaml:"key_file"`
+	ClientCAFile string `yaml:"client_ca_file"` // enables optional mTLS: a presented certificate must chain to this CA
 }
 
 // Limits are the edge limits (ARCHITECTURE §14.2). Zero is never "unlimited"
@@ -81,6 +84,24 @@ type Upstream struct {
 	Retries        int           `yaml:"retries"`         // retries (0-3) of requests that provably never reached the upstream; 0 = none
 }
 
+// Lineage configures the request-event pipeline (ARCHITECTURE §10.7).
+type Lineage struct {
+	Sink          string        `yaml:"sink"` // null (default) | clickhouse
+	RingSize      int           `yaml:"ring_size"`
+	BatchRows     int           `yaml:"batch_rows"`
+	FlushInterval time.Duration `yaml:"flush_interval"`
+	Writers       int           `yaml:"writers"`
+	ClickHouse    ClickHouse    `yaml:"clickhouse"`
+}
+
+// ClickHouse is the native-protocol endpoint of the lineage store.
+type ClickHouse struct {
+	Addr         string `yaml:"addr"`
+	User         string `yaml:"user"`
+	PasswordFile string `yaml:"password_file"`
+	Compression  string `yaml:"compression"` // none | lz4
+}
+
 // Route sends requests for models matching a glob to a named upstream. The first
 // matching route wins; a model with no route does not exist, as far as any
 // agent can tell.
@@ -91,8 +112,32 @@ type Route struct {
 
 // Auth configures authentication sources.
 type Auth struct {
-	PepperFile string   `yaml:"pepper_file"` // file with the API-key hashing pepper (>= 16 bytes)
-	APIKeys    []APIKey `yaml:"api_keys"`
+	PepperFile string        `yaml:"pepper_file"` // file with the API-key hashing pepper (>= 16 bytes)
+	APIKeys    []APIKey      `yaml:"api_keys"`
+	JWT        JWT           `yaml:"jwt"`
+	MTLS       []MTLSMapping `yaml:"mtls"`
+}
+
+// JWT enables bearer-JWT authentication (ARCHITECTURE §8.1). The token proves
+// identity only; scopes come from the agent registry.
+type JWT struct {
+	Issuer      string        `yaml:"issuer"`
+	Audience    string        `yaml:"audience"`
+	Algorithms  []string      `yaml:"algorithms"`   // allow-list: EdDSA, ES256, RS256 (never none, never HS*)
+	JWKSURL     string        `yaml:"jwks_url"`     // fetched and cached
+	JWKSFile    string        `yaml:"jwks_file"`    // alternative: a local JWKS document
+	Refresh     time.Duration `yaml:"refresh"`      // JWKS refresh interval (default 5m)
+	StaleMax    time.Duration `yaml:"stale_max"`    // keep using a cached JWKS this long when refresh fails (default 1h)
+	MinRefresh  time.Duration `yaml:"min_refresh"`  // minimum gap between refreshes forced by an unknown kid (default 10s)
+	AgentClaim  string        `yaml:"agent_claim"`  // claim holding the agent id (default sub)
+	Leeway      time.Duration `yaml:"leeway"`       // clock skew allowance for exp/nbf (default 30s)
+	MaxLifetime time.Duration `yaml:"max_lifetime"` // reject tokens whose exp is further away than this (0 = no limit)
+}
+
+// MTLSMapping maps a client-certificate URI SAN (e.g. a SPIFFE id) to an agent.
+type MTLSMapping struct {
+	URISAN string `yaml:"uri_san"`
+	Agent  string `yaml:"agent"`
 }
 
 // APIKey is one stored API key: only a peppered SHA-256 is configured.
@@ -108,6 +153,7 @@ type Agent struct {
 	ID     string      `yaml:"id"`
 	Tenant string      `yaml:"tenant"`
 	Models []string    `yaml:"models"` // glob list; empty = no models allowed
+	Admin  bool        `yaml:"admin"`  // may read Server-Timing stage timings
 	Limits AgentLimits `yaml:"limits"`
 }
 
@@ -129,6 +175,7 @@ func Defaults() Config {
 			BodyBytes: 8 << 20, ResponseBytes: 16 << 20, DecompressRatio: 20, EventBytes: 1 << 20, StreamBytes: 64 << 20, StreamDuration: 10 * time.Minute, StreamIdle: 120 * time.Second, WriteDeadline: 10 * time.Second, DrainTimeout: 30 * time.Second,
 			GlobalInflight: 60000,
 		},
+		Lineage: Lineage{Sink: "null", RingSize: 1 << 16, BatchRows: 50000, FlushInterval: 750 * time.Millisecond, Writers: 2},
 	}
 }
 
@@ -287,6 +334,24 @@ func (c *Config) validate(root *yaml.Node) Errors {
 	if l.MaxConnections < 0 {
 		add("limits.max_connections", "must be >= 0", "limits", "max_connections")
 	}
+	switch c.Lineage.Sink {
+	case "null":
+	case "clickhouse":
+		if c.Lineage.ClickHouse.Addr == "" {
+			add("lineage.clickhouse.addr", "must be set for the clickhouse sink", "lineage", "clickhouse", "addr")
+		}
+		if c := c.Lineage.ClickHouse.Compression; c != "" && c != "none" && c != "lz4" {
+			add("lineage.clickhouse.compression", "must be none or lz4", "lineage", "clickhouse", "compression")
+		}
+	default:
+		add("lineage.sink", "must be null or clickhouse", "lineage", "sink")
+	}
+	if c.Lineage.RingSize < 2 || c.Lineage.BatchRows < 1 || c.Lineage.FlushInterval <= 0 || c.Lineage.Writers < 1 {
+		add("lineage", "ring_size >= 2, batch_rows >= 1, flush_interval > 0, writers >= 1", "lineage")
+	}
+	if c.NodeID < 0 || c.NodeID > 1023 {
+		add("node_id", "must be 0-1023", "node_id")
+	}
 	if c.Runtime.GOMAXPROCS < 0 {
 		add("runtime.gomaxprocs", "must be >= 0", "runtime", "gomaxprocs")
 	}
@@ -353,6 +418,42 @@ func (c *Config) validate(root *yaml.Node) Errors {
 		if !k.NotAfter.IsZero() && !k.NotBefore.IsZero() && !k.NotAfter.After(k.NotBefore) {
 			add(p+".not_after", "must be after not_before", "auth", "api_keys", i, "not_after")
 		}
+	}
+	if j := c.Auth.JWT; j.Issuer != "" || j.Audience != "" || j.JWKSURL != "" || j.JWKSFile != "" || len(j.Algorithms) > 0 {
+		if j.Issuer == "" {
+			add("auth.jwt.issuer", "must be set", "auth", "jwt", "issuer")
+		}
+		if j.Audience == "" {
+			add("auth.jwt.audience", "must be set", "auth", "jwt", "audience")
+		}
+		if (j.JWKSURL == "") == (j.JWKSFile == "") {
+			add("auth.jwt", "exactly one of jwks_url and jwks_file must be set", "auth", "jwt")
+		}
+		if len(j.Algorithms) == 0 {
+			add("auth.jwt.algorithms", "must list at least one of EdDSA, ES256, RS256", "auth", "jwt", "algorithms")
+		}
+		for _, a := range j.Algorithms {
+			if a != "EdDSA" && a != "ES256" && a != "RS256" {
+				add("auth.jwt.algorithms", fmt.Sprintf("algorithm %q is not allowed (only EdDSA, ES256, RS256)", a), "auth", "jwt", "algorithms")
+			}
+		}
+		if j.Refresh < 0 || j.StaleMax < 0 || j.MinRefresh < 0 || j.Leeway < 0 || j.MaxLifetime < 0 {
+			add("auth.jwt", "durations must be >= 0", "auth", "jwt")
+		}
+	}
+	for i, m := range c.Auth.MTLS {
+		if !strings.HasPrefix(m.URISAN, "spiffe://") && !strings.HasPrefix(m.URISAN, "https://") {
+			add(fmt.Sprintf("auth.mtls[%d].uri_san", i), "must be a spiffe:// or https:// URI", "auth", "mtls", i, "uri_san")
+		}
+		if !seen[m.Agent] {
+			add(fmt.Sprintf("auth.mtls[%d].agent", i), fmt.Sprintf("unknown agent %q", m.Agent), "auth", "mtls", i, "agent")
+		}
+	}
+	if len(c.Auth.MTLS) > 0 && c.Listen.TLS.ClientCAFile == "" {
+		add("auth.mtls", "requires listen.tls.client_ca_file", "auth", "mtls")
+	}
+	if c.Listen.TLS.ClientCAFile != "" && c.Listen.TLS.CertFile == "" {
+		add("listen.tls.client_ca_file", "requires cert_file and key_file", "listen", "tls", "client_ca_file")
 	}
 	if len(c.Auth.APIKeys) > 0 && c.Auth.PepperFile == "" {
 		add("auth.pepper_file", "required when api_keys are configured", "auth", "pepper_file")

@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"github.com/vivekjami/tripwire/internal/config"
+	"github.com/vivekjami/tripwire/internal/lineage"
 	"github.com/vivekjami/tripwire/internal/mock"
 )
 
@@ -53,6 +54,11 @@ func (r *recorder) snapshot() (http.Header, string, []byte) {
 // startAPI runs a gateway in front of `up` with one route "*" and an upstream credential.
 func startAPI(t *testing.T, up http.Handler, mut func(*config.Config)) (*rig, *recorder) {
 	t.Helper()
+	return startAPISink(t, nil, up, mut)
+}
+
+func startAPISink(t *testing.T, sink lineage.Sink, up http.Handler, mut func(*config.Config)) (*rig, *recorder) {
+	t.Helper()
 	rec := &recorder{inner: up}
 	ts := httptest.NewServer(rec)
 	t.Cleanup(ts.Close)
@@ -60,7 +66,7 @@ func startAPI(t *testing.T, up http.Handler, mut func(*config.Config)) (*rig, *r
 	if err := os.WriteFile(cf, []byte(upstreamCred+"\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	r := start(t, func(c *config.Config) {
+	r := startSink(t, sink, func(c *config.Config) {
 		c.Upstreams = map[string]config.Upstream{"mock": {URL: ts.URL, CredentialFile: cf, Timeout: 2 * time.Second}}
 		c.Routes = []config.Route{{Model: "*", Upstream: "mock"}}
 		c.Agents[0].Models = []string{"gpt-*", "o1"}

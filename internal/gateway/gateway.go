@@ -12,8 +12,10 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net"
 	"net/http"
@@ -26,10 +28,12 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/ClickHouse/ch-go"
 	"github.com/prometheus/client_golang/prometheus"
 
 	"github.com/vivekjami/tripwire/internal/auth"
 	"github.com/vivekjami/tripwire/internal/config"
+	"github.com/vivekjami/tripwire/internal/lineage"
 	"github.com/vivekjami/tripwire/internal/obs"
 )
 
@@ -53,6 +57,8 @@ type Options struct {
 	Log        *slog.Logger
 	Metrics    *prometheus.Registry
 	Version    string
+	// LineageSink overrides the configured sink (tests, embedding).
+	LineageSink lineage.Sink
 }
 
 // Server is the edge.
@@ -65,6 +71,8 @@ type Server struct {
 	cert *certReloader
 
 	inflight *auth.Gate
+	lin      *lineage.Pipeline
+	ids      *lineage.IDGen
 	ready    atomic.Bool
 	draining atomic.Bool
 }
@@ -128,6 +136,9 @@ func New(cfg *config.Config, opt Options) (*Server, error) {
 	}
 	s.reg.Store(r)
 	s.m.regAgents.Set(float64(r.Len()))
+	if err := s.startLineage(); err != nil {
+		return nil, err
+	}
 	if cfg.Listen.TLS.CertFile != "" {
 		s.cert, err = newCertReloader(cfg.Listen.TLS.CertFile, cfg.Listen.TLS.KeyFile, func(ok bool) {
 			res := "ok"
@@ -161,7 +172,8 @@ func (s *Server) Reload() error {
 				s.m.regAgents.Set(float64(r.Len()))
 				s.m.regReload.WithLabelValues("ok").Inc()
 				if nc.Listen != s.cfg.Listen || nc.Limits != s.cfg.Limits || nc.Runtime != s.cfg.Runtime ||
-					!reflect.DeepEqual(nc.Upstreams, s.cfg.Upstreams) || !reflect.DeepEqual(nc.Routes, s.cfg.Routes) {
+					!reflect.DeepEqual(nc.Upstreams, s.cfg.Upstreams) || !reflect.DeepEqual(nc.Routes, s.cfg.Routes) ||
+					!reflect.DeepEqual(nc.Lineage, s.cfg.Lineage) || nc.NodeID != s.cfg.NodeID {
 					s.log.Warn("listener, limit, runtime, upstream or route settings changed; they apply only after a restart", "reason", "restart_required")
 				}
 				s.log.Info("registry reloaded", "count", r.Len())
@@ -197,6 +209,16 @@ func (s *Server) Serve(ctx context.Context, data, admin net.Listener) error {
 	tlsOn := s.cert != nil
 	if tlsOn {
 		srv.TLSConfig = &tls.Config{GetCertificate: s.cert.GetCertificate, MinVersion: tls.VersionTLS12, NextProtos: []string{"h2", "http/1.1"}}
+		if ca := s.cfg.Listen.TLS.ClientCAFile; ca != "" {
+			pem, err := os.ReadFile(ca) //nolint:gosec // operator-supplied path
+			pool := x509.NewCertPool()
+			if err != nil || !pool.AppendCertsFromPEM(pem) {
+				return errors.New("gateway: client_ca_file unreadable or empty")
+			}
+			// Optional mTLS: a certificate is not required, but one that is
+			// presented must chain to this CA (an unverifiable cert fails the handshake).
+			srv.TLSConfig.ClientCAs, srv.TLSConfig.ClientAuth = pool, tls.VerifyClientCertIfGiven
+		}
 	} else {
 		srv.Protocols = new(http.Protocols)
 		srv.Protocols.SetHTTP1(true)
@@ -235,6 +257,7 @@ func (s *Server) Serve(ctx context.Context, data, admin net.Listener) error {
 		_ = srv.Close()
 	}
 	_ = adm.Shutdown(dctx)
+	_ = s.lin.Close() // flush queued request events before exiting
 	return err
 }
 
@@ -278,7 +301,8 @@ func (s *Server) recoverMW(next http.Handler) http.Handler {
 
 type statusWriter struct {
 	http.ResponseWriter
-	code int
+	code  int
+	bytes uint32
 }
 
 func (w *statusWriter) WriteHeader(c int) {
@@ -291,7 +315,9 @@ func (w *statusWriter) Write(b []byte) (int, error) {
 	if w.code == 0 {
 		w.code = http.StatusOK
 	}
-	return w.ResponseWriter.Write(b)
+	n, err := w.ResponseWriter.Write(b)
+	w.bytes += uint32(n)
+	return n, err
 }
 
 // Unwrap lets http.ResponseController reach Flush/SetWriteDeadline.
@@ -305,13 +331,17 @@ func (s *Server) requestIDMW(next http.Handler) http.Handler {
 		id := "req_" + hex.EncodeToString(b[:])
 		w.Header().Set("X-Request-Id", id)
 		sw := &statusWriter{ResponseWriter: w}
-		next.ServeHTTP(sw, r.WithContext(context.WithValue(r.Context(), reqIDKey, id)))
+		st := newReqState()
+		st.method = r.Method
+		ctx := context.WithValue(context.WithValue(r.Context(), reqIDKey, id), reqStateKey, st)
+		next.ServeHTTP(sw, r.WithContext(ctx))
 		code := sw.code
 		if code == 0 {
 			code = http.StatusOK
 		}
 		s.m.requests.WithLabelValues(strconv.Itoa(code/100) + "xx").Inc()
 		s.m.reqDuration.Observe(time.Since(start).Seconds())
+		s.emit(st, code, sw.bytes, r.Header.Get("Traceparent"))
 	})
 }
 
@@ -350,16 +380,41 @@ func (s *Server) shedMW(next http.Handler) http.Handler {
 	})
 }
 
-// authMW authenticates "Authorization: Bearer <api key>". Every failure mode
-// returns the same status, headers and body (no oracle).
+// authMW authenticates the caller: "Authorization: Bearer <api key or JWT>"
+// and/or a verified client certificate. If both are presented they must name the
+// same agent. Every failure mode returns the same status, headers and body
+// (no oracle).
 func (s *Server) authMW(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		key, _ := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
-		if len(r.Header.Values("Authorization")) != 1 { // none, or ambiguous duplicates
-			key = ""
+		reg := s.reg.Load()
+		now := time.Now()
+		var a *auth.Agent
+		ok := true
+		hdrs := r.Header.Values("Authorization")
+		hasBearer := len(hdrs) > 0
+		if hasBearer {
+			tok, found := strings.CutPrefix(r.Header.Get("Authorization"), "Bearer ")
+			if len(hdrs) != 1 || !found { // duplicates are ambiguous; other schemes are unsupported
+				tok = ""
+			}
+			a, ok = reg.AuthenticateBearer(r.Context(), tok, now)
 		}
-		a, ok := s.reg.Load().Authenticate(key, time.Now())
-		if !ok {
+		if r.TLS != nil && len(r.TLS.VerifiedChains) > 0 && len(r.TLS.PeerCertificates) > 0 {
+			var uris []string
+			for _, u := range r.TLS.PeerCertificates[0].URIs {
+				uris = append(uris, u.String())
+			}
+			ca, cok := reg.AuthenticateCert(uris)
+			switch {
+			case !hasBearer:
+				a, ok = ca, cok
+			case ok && (!cok || ca.ID != a.ID): // two identities that disagree
+				ok = false
+			}
+		} else if !hasBearer {
+			ok = false
+		}
+		if !ok || a == nil {
 			s.m.authFail.Inc()
 			w.Header().Set("WWW-Authenticate", `Bearer realm="tripwire"`)
 			writeErr(w, http.StatusUnauthorized, "invalid_request_error", "invalid_api_key", "invalid authentication")
@@ -368,6 +423,10 @@ func (s *Server) authMW(next http.Handler) http.Handler {
 		// The inbound credential is consumed here; it is removed so no later
 		// stage can forward it upstream (ARCHITECTURE §8.3, T10).
 		r.Header.Del("Authorization")
+		if st := stateFrom(r.Context()); st != nil {
+			st.agent = a
+			st.timer.Mark(obs.StageAuthn)
+		}
 		next.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), agentKey, a)))
 	})
 }
@@ -462,4 +521,37 @@ func ApplyRuntime(rt config.Runtime) (gomaxprocs int, memLimit int64) {
 		memLimit = debug.SetMemoryLimit(-1)
 	}
 	return runtime.GOMAXPROCS(0), memLimit
+}
+
+// startLineage builds the request-event pipeline from config (or the override).
+func (s *Server) startLineage() error {
+	lc := s.cfg.Lineage
+	sink := s.opt.LineageSink
+	if sink == nil {
+		switch lc.Sink {
+		case "clickhouse":
+			pw, err := auth.ReadPepper(lc.ClickHouse.PasswordFile) // same trimmed-file reader
+			if err != nil {
+				return err
+			}
+			comp := ch.CompressionDisabled
+			if lc.ClickHouse.Compression == "lz4" {
+				comp = ch.CompressionLZ4
+			}
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			cs, err := lineage.NewCHSink(ctx, lineage.CHConfig{Addr: lc.ClickHouse.Addr, User: lc.ClickHouse.User, Password: string(pw),
+				Compression: comp, Node: strconv.Itoa(s.cfg.NodeID)})
+			if err != nil {
+				return fmt.Errorf("gateway: lineage clickhouse: %w", err)
+			}
+			sink = cs
+		default:
+			sink = &lineage.NullSink{}
+		}
+	}
+	s.ids = lineage.NewIDGen(uint16(s.cfg.NodeID))
+	s.lin = lineage.New(lineage.Config{RingSize: lc.RingSize, BatchRows: lc.BatchRows, FlushEvery: lc.FlushInterval, Writers: lc.Writers,
+		Registry: s.opt.Metrics}, sink)
+	return nil
 }

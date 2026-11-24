@@ -67,6 +67,73 @@
           },
           "type": "array"
         },
+        "jwt": {
+          "additionalProperties": false,
+          "properties": {
+            "agent_claim": {
+              "type": "string"
+            },
+            "algorithms": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "audience": {
+              "type": "string"
+            },
+            "issuer": {
+              "type": "string"
+            },
+            "jwks_file": {
+              "type": "string"
+            },
+            "jwks_url": {
+              "type": "string"
+            },
+            "leeway": {
+              "description": "Go duration, e.g. 5s",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+              "type": "string"
+            },
+            "max_lifetime": {
+              "description": "Go duration, e.g. 5s",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+              "type": "string"
+            },
+            "min_refresh": {
+              "description": "Go duration, e.g. 5s",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+              "type": "string"
+            },
+            "refresh": {
+              "description": "Go duration, e.g. 5s",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+              "type": "string"
+            },
+            "stale_max": {
+              "description": "Go duration, e.g. 5s",
+              "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "mtls": {
+          "items": {
+            "additionalProperties": false,
+            "properties": {
+              "agent": {
+                "type": "string"
+              },
+              "uri_san": {
+                "type": "string"
+              }
+            },
+            "type": "object"
+          },
+          "type": "array"
+        },
         "pepper_file": {
           "type": "string"
         }
@@ -149,6 +216,9 @@
           "additionalProperties": false,
           "properties": {
             "cert_file": {
+              "type": "string"
+            },
+            "client_ca_file": {
               "type": "string"
             },
             "key_file": {

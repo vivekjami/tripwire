@@ -1,9 +1,11 @@
 package auth
 
 import (
+	"context"
 	"encoding/hex"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -16,6 +18,7 @@ type Agent struct {
 	ID      string
 	Tenant  string
 	Models  []Glob
+	Admin   bool  // may read Server-Timing
 	MaxBody int64 // 0 = use the global body limit
 
 	Rate    *Bucket
@@ -41,6 +44,9 @@ func (a *Agent) ModelAllowed(model string) bool {
 type Registry struct {
 	agents map[string]*Agent
 	keys   *keyStore
+	jwt    *JWTVerifier
+	jwtCfg config.JWT
+	mtls   map[string]string // URI SAN -> agent id
 }
 
 // Agent returns the agent with the given id.
@@ -56,6 +62,41 @@ func (r *Registry) Authenticate(key string, now time.Time) (*Agent, bool) {
 	return a, ok
 }
 
+// AuthenticateBearer authenticates an Authorization bearer value: an API key
+// ("tw_...") or, when configured, a JWT. Every failure is the same (nil, false).
+func (r *Registry) AuthenticateBearer(ctx context.Context, tok string, now time.Time) (*Agent, bool) {
+	switch {
+	case strings.HasPrefix(tok, keyPrefix):
+		return r.Authenticate(tok, now)
+	case r.jwt != nil && strings.Count(tok, ".") == 2:
+		id, err := r.jwt.Verify(ctx, tok)
+		if err != nil {
+			return nil, false
+		}
+		a, ok := r.agents[id]
+		return a, ok
+	}
+	_, _ = r.keys.verify(tok, now) // burn the same work as a failed key check
+	if r.jwt != nil {
+		r.jwt.dummy()
+	}
+	return nil, false
+}
+
+// AuthenticateCert maps a verified client certificate's URI SANs to an agent.
+func (r *Registry) AuthenticateCert(uris []string) (*Agent, bool) {
+	for _, u := range uris {
+		if id, ok := r.mtls[u]; ok {
+			a, ok := r.agents[id]
+			return a, ok
+		}
+	}
+	return nil, false
+}
+
+// JWT exposes the verifier (nil if JWT auth is not configured), for tests and metrics.
+func (r *Registry) JWT() *JWTVerifier { return r.jwt }
+
 // Len is the number of agents.
 func (r *Registry) Len() int { return len(r.agents) }
 
@@ -66,9 +107,20 @@ func Build(cfg *config.Config, pepper []byte, prev *Registry) (*Registry, error)
 	if len(cfg.Auth.APIKeys) > 0 && len(pepper) < minPepper {
 		return nil, fmt.Errorf("auth: pepper must be at least %d bytes", minPepper)
 	}
-	r := &Registry{agents: make(map[string]*Agent, len(cfg.Agents)), keys: &keyStore{pepper: pepper, byAgent: map[string][]keyEntry{}}}
+	r := &Registry{agents: make(map[string]*Agent, len(cfg.Agents)), keys: &keyStore{pepper: pepper, byAgent: map[string][]keyEntry{}}, mtls: map[string]string{}}
+	for _, m := range cfg.Auth.MTLS {
+		r.mtls[m.URISAN] = m.Agent
+	}
+	if j := cfg.Auth.JWT; j.Issuer != "" {
+		r.jwtCfg = j
+		if prev != nil && prev.jwt != nil && reflect.DeepEqual(prev.jwtCfg, j) {
+			r.jwt = prev.jwt // keep the JWKS cache and verified-token cache across reloads
+		} else {
+			r.jwt = NewJWTVerifier(j, "reg")
+		}
+	}
 	for _, ac := range cfg.Agents {
-		a := &Agent{ID: ac.ID, Tenant: ac.Tenant, MaxBody: ac.Limits.MaxBody,
+		a := &Agent{ID: ac.ID, Tenant: ac.Tenant, Admin: ac.Admin, MaxBody: ac.Limits.MaxBody,
 			rps: ac.Limits.RPS, burst: ac.Limits.Burst, nStrms: int64(ac.Limits.ConcurrentStreams)}
 		for _, m := range ac.Models {
 			a.Models = append(a.Models, CompileGlob(m))

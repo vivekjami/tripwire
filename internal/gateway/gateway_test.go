@@ -23,6 +23,7 @@ import (
 
 	"github.com/vivekjami/tripwire/internal/auth"
 	"github.com/vivekjami/tripwire/internal/config"
+	"github.com/vivekjami/tripwire/internal/lineage"
 )
 
 var pepper = []byte("0123456789abcdef-test-pepper")
@@ -38,6 +39,11 @@ type rig struct {
 }
 
 func start(t *testing.T, mut func(*config.Config), routes http.Handler) *rig {
+	t.Helper()
+	return startSink(t, nil, mut, routes)
+}
+
+func startSink(t *testing.T, sink lineage.Sink, mut func(*config.Config), routes http.Handler) *rig {
 	t.Helper()
 	dir := t.TempDir()
 	pf := filepath.Join(dir, "pepper")
@@ -55,7 +61,7 @@ func start(t *testing.T, mut func(*config.Config), routes http.Handler) *rig {
 	if mut != nil {
 		mut(&cfg)
 	}
-	s, err := New(&cfg, Options{Routes: routes})
+	s, err := New(&cfg, Options{Routes: routes, LineageSink: sink})
 	if err != nil {
 		t.Fatal(err)
 	}

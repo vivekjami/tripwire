@@ -101,6 +101,7 @@ func (a *chatAPI) stream(w http.ResponseWriter, r *http.Request, ag *auth.Agent,
 
 	lim := a.s.cfg.Limits
 	start := time.Now()
+	rs := stateFrom(r.Context())
 	ctx, cancel := context.WithTimeout(r.Context(), lim.StreamDuration)
 	defer cancel()
 	resp, err := up.Do(ctx, upstream.Request{
@@ -114,6 +115,7 @@ func (a *chatAPI) stream(w http.ResponseWriter, r *http.Request, ag *auth.Agent,
 		return
 	}
 	defer resp.Body.Close()
+	rs.markUpstream() // upstream headers received
 	if resp.StatusCode != http.StatusOK || !strings.HasPrefix(strings.ToLower(resp.Header.Get("Content-Type")), "text/event-stream") {
 		m.total.WithLabelValues("upstream_status").Inc()
 		a.relayBounded(w, ctx, up, resp, start) // an upstream error (or a non-stream answer) is relayed like a non-stream response
@@ -134,6 +136,7 @@ func (a *chatAPI) stream(w http.ResponseWriter, r *http.Request, ag *auth.Agent,
 	wrote := false
 	flush := func(b []byte) error {
 		if !wrote { // headers go out with the first event, i.e. on the first upstream byte
+			setServerTiming(w, rs)
 			h := w.Header()
 			h.Set("Content-Type", "text/event-stream")
 			h.Set("Cache-Control", "no-cache")
@@ -211,7 +214,15 @@ func (a *chatAPI) stream(w http.ResponseWriter, r *http.Request, ag *auth.Agent,
 		}
 		m.events.Inc()
 		m.bytes.Add(float64(len(ev.Raw)))
-		m.added.Observe(time.Since(recvd).Seconds())
+		held := time.Since(recvd)
+		m.added.Observe(held.Seconds())
+		if rs != nil {
+			rs.eventsOut++
+			rs.addedStream += held.Nanoseconds()
+			if us := uint32(held.Microseconds()); us > rs.holdMaxUS {
+				rs.holdMaxUS = us
+			}
+		}
 		if first {
 			first = false
 			m.ttfe.Observe(time.Since(start).Seconds())
