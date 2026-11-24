@@ -540,14 +540,6 @@ func TestModelsListFilteredByAgentScope(t *testing.T) {
 	}
 }
 
-func TestStreamingFailsClosedUntilWP14(t *testing.T) {
-	r, rec := startAPI(t, mockUpstream(), nil)
-	resp, body := post(t, r, `{"model":"gpt-4o","stream":true,"messages":[{"role":"user","content":"x"}]}`, nil)
-	if resp.StatusCode != 501 || rec.hits.Load() != 0 {
-		t.Fatalf("%d %s hits=%d", resp.StatusCode, body, rec.hits.Load())
-	}
-}
-
 func TestUnknownRoute(t *testing.T) {
 	r, _ := startAPI(t, mockUpstream(), nil)
 	req, _ := http.NewRequest("GET", r.dataURL+"/v1/embeddings", nil)

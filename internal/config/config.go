@@ -56,6 +56,10 @@ type Limits struct {
 	BodyBytes         int64         `yaml:"body_bytes"`
 	ResponseBytes     int64         `yaml:"response_bytes"`   // non-stream upstream response cap
 	DecompressRatio   int           `yaml:"decompress_ratio"` // max decompressed/compressed request size
+	EventBytes        int           `yaml:"event_bytes"`      // max size of one SSE event
+	StreamBytes       int64         `yaml:"stream_bytes"`     // max bytes of one streamed response
+	StreamDuration    time.Duration `yaml:"stream_duration"`  // max wall time of one stream
+	StreamIdle        time.Duration `yaml:"stream_idle"`      // max gap between upstream bytes
 	WriteDeadline     time.Duration `yaml:"write_deadline"`
 	DrainTimeout      time.Duration `yaml:"drain_timeout"`
 	MaxConnections    int           `yaml:"max_connections"` // 0 = no connection cap
@@ -122,7 +126,7 @@ func Defaults() Config {
 		Listen:  Listen{Data: "127.0.0.1:8080", Admin: "127.0.0.1:9090"},
 		Limits: Limits{
 			HeaderBytes: 32 << 10, ReadHeaderTimeout: 5 * time.Second, IdleTimeout: 120 * time.Second,
-			BodyBytes: 8 << 20, ResponseBytes: 16 << 20, DecompressRatio: 20, WriteDeadline: 10 * time.Second, DrainTimeout: 30 * time.Second,
+			BodyBytes: 8 << 20, ResponseBytes: 16 << 20, DecompressRatio: 20, EventBytes: 1 << 20, StreamBytes: 64 << 20, StreamDuration: 10 * time.Minute, StreamIdle: 120 * time.Second, WriteDeadline: 10 * time.Second, DrainTimeout: 30 * time.Second,
 			GlobalInflight: 60000,
 		},
 	}
@@ -273,6 +277,10 @@ func (c *Config) validate(root *yaml.Node) Errors {
 	pos("body_bytes", l.BodyBytes > 0)
 	pos("response_bytes", l.ResponseBytes > 0)
 	pos("decompress_ratio", l.DecompressRatio > 0)
+	pos("event_bytes", l.EventBytes > 0)
+	pos("stream_bytes", l.StreamBytes > 0)
+	pos("stream_duration", l.StreamDuration > 0)
+	pos("stream_idle", l.StreamIdle > 0)
 	pos("write_deadline", l.WriteDeadline > 0)
 	pos("drain_timeout", l.DrainTimeout > 0)
 	pos("global_inflight", l.GlobalInflight > 0)

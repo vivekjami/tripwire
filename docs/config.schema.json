@@ -87,6 +87,9 @@
           "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
           "type": "string"
         },
+        "event_bytes": {
+          "type": "integer"
+        },
         "global_inflight": {
           "type": "integer"
         },
@@ -108,6 +111,19 @@
         },
         "response_bytes": {
           "type": "integer"
+        },
+        "stream_bytes": {
+          "type": "integer"
+        },
+        "stream_duration": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
+        },
+        "stream_idle": {
+          "description": "Go duration, e.g. 5s",
+          "pattern": "^[0-9]+(\\.[0-9]+)?(ns|us|µs|ms|s|m|h)$",
+          "type": "string"
         },
         "write_deadline": {
           "description": "Go duration, e.g. 5s",

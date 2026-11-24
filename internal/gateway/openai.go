@@ -36,12 +36,15 @@ type chatAPI struct {
 	walker openai.Walker
 	lim    jsonscan.Limits
 
+	swalker StreamWalker
+	sm      *streamMetrics
+
 	upReqs *prometheus.CounterVec
 	upDur  *prometheus.HistogramVec
 }
 
 func (s *Server) newChatAPI() (*chatAPI, error) {
-	a := &chatAPI{s: s, walker: openai.NoopWalker{}, lim: jsonscan.DefaultLimits()}
+	a := &chatAPI{s: s, walker: openai.NoopWalker{}, swalker: noopStreamWalker{}, lim: jsonscan.DefaultLimits()}
 	a.lim.MaxBytes = int(s.cfg.Limits.BodyBytes)
 	byName := map[string]*upstream.Client{}
 	for name, uc := range s.cfg.Upstreams {
@@ -60,6 +63,7 @@ func (s *Server) newChatAPI() (*chatAPI, error) {
 	a.upDur = prometheus.NewHistogramVec(prometheus.HistogramOpts{Name: "tw_upstream_seconds", Help: "Upstream call duration (non-stream: whole response).",
 		NativeHistogramBucketFactor: 1.1, NativeHistogramMaxBucketNumber: 100, Buckets: prometheus.ExponentialBuckets(0.001, 2, 16)}, []string{"upstream"})
 	s.opt.Metrics.MustRegister(a.upReqs, a.upDur)
+	a.sm = newStreamMetrics(a)
 	return a, nil
 }
 
@@ -200,11 +204,6 @@ func (a *chatAPI) chat(w http.ResponseWriter, r *http.Request) {
 	a.forwardJSON(w, r, up, req)
 }
 
-// stream is filled in by WP1.4. Until then a streaming request fails closed.
-func (a *chatAPI) stream(w http.ResponseWriter, _ *http.Request, _ *auth.Agent, _ *upstream.Client, _ *openai.Request) {
-	writeErr(w, http.StatusNotImplemented, "server_error", "not_implemented", "streaming is not implemented yet")
-}
-
 func classOf(code int) string { return strconv.Itoa(code/100) + "xx" }
 
 func (a *chatAPI) forwardJSON(w http.ResponseWriter, r *http.Request, up *upstream.Client, req *openai.Request) {
@@ -221,6 +220,12 @@ func (a *chatAPI) forwardJSON(w http.ResponseWriter, r *http.Request, up *upstre
 		return
 	}
 	defer resp.Body.Close()
+	a.relayBounded(w, ctx, up, resp, start)
+}
+
+// relayBounded forwards a bounded, validated, non-stream upstream response (also
+// used for error bodies of streaming calls).
+func (a *chatAPI) relayBounded(w http.ResponseWriter, ctx context.Context, up *upstream.Client, resp *http.Response, start time.Time) {
 	raw, err := io.ReadAll(io.LimitReader(resp.Body, a.s.cfg.Limits.ResponseBytes+1))
 	a.upDur.WithLabelValues(up.Name).Observe(time.Since(start).Seconds())
 	a.upReqs.WithLabelValues(up.Name, classOf(resp.StatusCode)).Inc()
